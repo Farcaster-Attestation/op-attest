@@ -10,9 +10,9 @@ import { log } from "./log";
 import { bytesToHexString, HubEvent, Message } from "@farcaster/hub-nodejs";
 import { ok } from "neverthrow";
 
-const hubId = "shuttle";
+const hubId = "op_attest";
 
-export class App implements MessageHandler{
+export class App implements MessageHandler {
     private readonly db: DB;
     private hubSubscriber: HubSubscriber;
     private streamConsumer: HubEventStreamConsumer;
@@ -65,6 +65,7 @@ export class App implements MessageHandler{
         log.info("Starting stream consumer");
 
         await this.streamConsumer.start(async (event) => {
+            log.info(`Processing event....`);
             log.info(`Processing event ${JSON.stringify(event)}`);
             void this.processHubEvent(event);
             return ok({ skipped: false });
@@ -81,6 +82,7 @@ export class App implements MessageHandler{
     ): Promise<void> {
         if (!isNew) {
             // Message was already in the db, no-op
+            log.info(`Message ${bytesToHexString(message.hash)._unsafeUnwrap()} already in db, skipping`);
             return;
         }
 
