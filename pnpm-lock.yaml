@@ -20,6 +20,9 @@ importers:
       commander:
         specifier: ^12.1.0
         version: 12.1.0
+      eventemitter2:
+        specifier: ^6.4.9
+        version: 6.4.9
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@20.14.7)
@@ -1080,6 +1083,9 @@ packages:
   event-target-shim@5.0.1:
     resolution: {integrity: sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==}
     engines: {node: '>=6'}
+
+  eventemitter2@6.4.9:
+    resolution: {integrity: sha512-JEPTiaOt9f04oa6NOkc4aH+nVp5I3wEjpHbIPqfgCdD5v5bUzy7xQqwcVO2aDQgOWhI28da57HksMrzK9HlRxg==}
 
   events@3.3.0:
     resolution: {integrity: sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==}
@@ -3328,6 +3334,8 @@ snapshots:
   esutils@2.0.3: {}
 
   event-target-shim@5.0.1: {}
+
+  eventemitter2@6.4.9: {}
 
   events@3.3.0: {}
 

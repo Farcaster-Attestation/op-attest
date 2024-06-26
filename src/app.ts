@@ -15,21 +15,26 @@ import {
 import { ok } from "neverthrow";
 import { AppDb, migrateToLatest } from "./db";
 import { farcasterTimeToDate } from "./utils";
-
-const hubId = "op_attest";
+import EventEmitter2 from "eventemitter2";
+import { HUB_ID, VERIFICATION_CREATED_EVENT, VERIFICATION_DELETED_EVENT } from "./constant";
+import { Eas } from "./eas";
 
 export class App implements MessageHandler {
     private readonly db: DB;
     private hubSubscriber: HubSubscriber;
     private streamConsumer: HubEventStreamConsumer;
     public redis: RedisClient;
+    public emitter: EventEmitter2;
+    public eas: Eas;
 
 
-    constructor(db: DB, redis: RedisClient, hubSubscriber: HubSubscriber, streamConsumer: HubEventStreamConsumer) {
+    constructor(db: DB, redis: RedisClient, hubSubscriber: HubSubscriber, streamConsumer: HubEventStreamConsumer, emitter: EventEmitter2) {
         this.db = db;
         this.redis = redis;
         this.hubSubscriber = hubSubscriber;
         this.streamConsumer = streamConsumer;
+        this.emitter = emitter;
+        this.eas = Eas.create(emitter);
     }
 
     static create(dbUrl: string,
@@ -46,7 +51,7 @@ export class App implements MessageHandler {
         const shardKey = totalShards === 0 ? "all" : `${shardIndex}`;
 
         const hubSubscriber = new EventStreamHubSubscriber(
-            hubId,
+            HUB_ID,
             hub,
             eventStreamForWrite,
             redis,
@@ -57,8 +62,9 @@ export class App implements MessageHandler {
             shardIndex);
 
         const streamConsumer = new HubEventStreamConsumer(hub, eventStreamForRead, shardKey);
+        const emitter = new EventEmitter2();
 
-        return new App(db, redis, hubSubscriber, streamConsumer);
+        return new App(db, redis, hubSubscriber, streamConsumer, emitter);
     }
 
     async start() {
@@ -74,6 +80,8 @@ export class App implements MessageHandler {
             void this.processHubEvent(event);
             return ok({ skipped: false });
         });
+        log.info("Start handle event");
+        await this.eas.handleEvent();
     }
 
     async handleMessageMerge(
@@ -93,6 +101,7 @@ export class App implements MessageHandler {
 
         const isVerify = isVerificationAddAddressMessage(message) || isVerificationRemoveMessage(message);
         if (isVerify && state === "created") {
+            this.emitter.emit(VERIFICATION_CREATED_EVENT, message);
             await appDB
                 .insertInto("verifications")
                 .values({
@@ -107,6 +116,7 @@ export class App implements MessageHandler {
                 })
                 .execute();
         } else if (isVerify && state === "deleted") {
+            this.emitter.emit(VERIFICATION_DELETED_EVENT, message);
             await appDB
                 .updateTable("verifications")
                 .set({ deletedAt: farcasterTimeToDate(message.data.timestamp) || new Date() })
