@@ -9,5 +9,3 @@ export class StartCMD {
         await app.start();
     }
 }
-
-// POSTGRES_URL=postgres://shuttle:password@0.0.0.0:6541 REDIS_URL=0.0.0.0:16379 HUB_HOST=<host>:<port> HUB_SSL=false yarn start start

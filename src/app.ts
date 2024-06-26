@@ -7,8 +7,14 @@ import {
     RedisClient, StoreMessageOperation,
 } from "@farcaster/shuttle";
 import { log } from "./log";
-import { bytesToHexString, HubEvent, Message } from "@farcaster/hub-nodejs";
+import {
+    bytesToHexString,
+    HubEvent, isVerificationAddAddressMessage, isVerificationRemoveMessage,
+    Message,
+} from "@farcaster/hub-nodejs";
 import { ok } from "neverthrow";
+import { AppDb, migrateToLatest } from "./db";
+import { farcasterTimeToDate } from "./utils";
 
 const hubId = "op_attest";
 
@@ -46,7 +52,7 @@ export class App implements MessageHandler {
             redis,
             shardKey,
             log,
-            null,
+            undefined,
             totalShards,
             shardIndex);
 
@@ -56,6 +62,7 @@ export class App implements MessageHandler {
     }
 
     async start() {
+        await this.ensureMigrations();
         // Start the hub subscriber
         await this.hubSubscriber.start();
 
@@ -63,10 +70,7 @@ export class App implements MessageHandler {
         await new Promise((resolve) => setTimeout(resolve, 10_000));
 
         log.info("Starting stream consumer");
-
         await this.streamConsumer.start(async (event) => {
-            log.info(`Processing event....`);
-            log.info(`Processing event ${JSON.stringify(event)}`);
             void this.processHubEvent(event);
             return ok({ skipped: false });
         });
@@ -82,16 +86,47 @@ export class App implements MessageHandler {
     ): Promise<void> {
         if (!isNew) {
             // Message was already in the db, no-op
-            log.info(`Message ${bytesToHexString(message.hash)._unsafeUnwrap()} already in db, skipping`);
             return;
         }
 
-        log.info(`Handling message ${JSON.stringify(message)}`);
+        const appDB = txn as unknown as AppDb;
+
+        const isVerify = isVerificationAddAddressMessage(message) || isVerificationRemoveMessage(message);
+        if (isVerify && state === "created") {
+            await appDB
+                .insertInto("verifications")
+                .values({
+                    fid: message.data.fid,
+                    hash: message.hash,
+                    address: message.data.verificationAddAddressBody?.address || new Uint8Array(),
+                    blockHash: message.data.verificationAddAddressBody?.blockHash || new Uint8Array(),
+                    verificationType: message.data.verificationAddAddressBody?.verificationType || 0,
+                    chainId: message.data.verificationAddAddressBody?.chainId || 0,
+                    protocol: message.data.verificationAddAddressBody?.protocol || 0,
+                    timestamp: farcasterTimeToDate(message.data.timestamp) || new Date(),
+                })
+                .execute();
+        } else if (isVerify && state === "deleted") {
+            await appDB
+                .updateTable("verifications")
+                .set({ deletedAt: farcasterTimeToDate(message.data.timestamp) || new Date() })
+                .where("hash", "=", message.hash)
+                .execute();
+        }
+
         const messageDesc = wasMissed ? `missed message (${operation})` : `message (${operation})`;
         log.info(`${state} ${messageDesc} ${bytesToHexString(message.hash)._unsafeUnwrap()} (type ${message.data?.type})`);
     }
 
     private async processHubEvent(hubEvent: HubEvent) {
         await HubEventProcessor.processHubEvent(this.db, hubEvent, this);
+    }
+
+    async ensureMigrations() {
+        const result = await migrateToLatest(this.db, log);
+        if (result.isErr()) {
+            log.error("Failed to migrate database", result.error);
+            throw result.error;
+        }
     }
 }
