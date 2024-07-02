@@ -9,23 +9,19 @@ import { ethers } from 'ethers';
 export class Eas {
     public emitter: EventEmitter2;
     public eas: EAS;
-    public encodeData: string;
+    public schemaEncoder: SchemaEncoder;
 
-    constructor(emitter: EventEmitter2, eas: EAS, encodeData: string) {
+    constructor(emitter: EventEmitter2, eas: EAS, schemaEncoder: SchemaEncoder) {
         this.eas = eas;
         this.emitter = emitter;
-        this.encodeData = encodeData;
+        this.schemaEncoder = schemaEncoder;
     }
 
     static create(emitter: EventEmitter2) {
         const eas = new EAS(EAS_CONTRACT_ADDRESS);
         const schemaEncoder = new SchemaEncoder("uint256 fid,address verifyAddress,uint8 protocol");
-        const encodedData = schemaEncoder.encodeData([
-            { name: "fid", value: "0", type: "uint256" },
-            { name: "verifyAddress", value: "0x0000000000000000000000000000000000000000", type: "address" },
-            { name: "protocol", value: "0", type: "uint8" }
-        ]);
-        return new Eas(emitter, eas, encodedData);
+
+        return new Eas(emitter, eas, schemaEncoder);
     }
 
     async connect() {
@@ -48,18 +44,24 @@ export class Eas {
         return this.eas.getAttestation(uid);
     }
 
-    async attestOnChain(recipientAddress: string) {
+    async attestOnChain(fid: string ,address: string, protocol: number) {
         if (!this.eas) {
             throw new Error("EAS is not initialized");
         }
 
+        const encodedData = this.schemaEncoder.encodeData([
+            { name: "fid", value: fid, type: "uint256" },
+            { name: "verifyAddress", value: address, type: "address" },
+            { name: "protocol", value: protocol, type: "uint8" }
+        ]);
+
         const tx = await this.eas.attest({
             schema: SCHEMA_UID,
             data: {
-                recipient: recipientAddress,
+                recipient: address,
                 expirationTime: 0n,
                 revocable: true,
-                data: this.encodeData
+                data: encodedData
             }
         });
 
