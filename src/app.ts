@@ -68,6 +68,9 @@ export class App implements MessageHandler {
     }
 
     async start() {
+        // connect to the EAS
+        await this.eas.connect();
+
         await this.ensureMigrations();
         // Start the hub subscriber
         await this.hubSubscriber.start();
