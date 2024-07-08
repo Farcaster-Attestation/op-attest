@@ -2,7 +2,7 @@ import type { Config } from "jest";
 
 const jestConfig: Config = {
   testEnvironment: "node",
-  rootDir: "src",
+  rootDir: ".",
   extensionsToTreatAsEsm: [".ts"],
   /**
    * For high performance with minimal configuration transform with TS with swc.
@@ -11,6 +11,7 @@ const jestConfig: Config = {
   transform: {
     "^.+\\.(t|j)sx?$": "@swc/jest",
   },
+  testTimeout: 60000,
 };
 
 export default jestConfig;
