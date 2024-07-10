@@ -1,12 +1,19 @@
 import EventEmitter2 from "eventemitter2";
-import { VERIFICATION_CREATED_EVENT, VERIFICATION_DELETED_EVENT } from "./constant";
+import { DEFAULT_BYTES_VALUE, VERIFICATION_CREATED_EVENT, VERIFICATION_DELETED_EVENT } from "./constant";
 import { Message } from "@farcaster/hub-nodejs";
 import { log } from "./log";
 import { Attestation, EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import { EAS_CONTRACT_ADDRESS, MIN_CONFIRMATIONS, NETWORK, PRIVATE_KEY, SCHEMA_UID } from "./env";
 import { ethers } from "ethers";
-import { createPublicClient, http, PublicClient, bytesToHex } from "viem";
-import { sepolia } from "viem/chains";
+import {
+    createPublicClient,
+    http,
+    PublicClient,
+    bytesToHex,
+    keccak256,
+    encodePacked,
+} from "viem";
+import { optimismSepolia } from "viem/chains";
 import { wagmiContract } from "./contracts/resolver/wagmi.abi";
 
 export class Eas {
@@ -20,7 +27,7 @@ export class Eas {
         this.emitter = emitter;
         this.schemaEncoder = schemaEncoder;
         this.client = createPublicClient({
-            chain: sepolia,
+            chain: optimismSepolia,
             transport: http(),
         });
     }
@@ -43,8 +50,12 @@ export class Eas {
             log.info(`${VERIFICATION_CREATED_EVENT} data: ${JSON.stringify(message)}`);
             if (!message.data) return;
             if (!message.data.verificationAddAddressBody) return;
+            if (message.data.verificationAddAddressBody.protocol !== 0) return;
 
-            const isAttested = await this.checkFidVerification(
+            log.info(`Attesting farcaster for fid: ${message.data.fid}`);
+            log.info(`Attesting farcaster for address: ${bytesToHex(message.data.verificationAddAddressBody.address)}`);
+
+            const {isAttested} = await this.checkFidVerification(
                 BigInt(message.data.fid),
                 bytesToHex(message.data.verificationAddAddressBody.address)
             );
@@ -62,8 +73,20 @@ export class Eas {
             log.info(`Attestation tx: ${tx}`);
         });
 
-        this.emitter.on(VERIFICATION_DELETED_EVENT, (data: Message) => {
-            log.info(`${VERIFICATION_DELETED_EVENT} data: ${JSON.stringify(data)}`);
+        this.emitter.on(VERIFICATION_DELETED_EVENT, async (message: Message) => {
+            log.info(`${VERIFICATION_DELETED_EVENT} data: ${JSON.stringify(message)}`);
+            if (!message.data) return;
+            if (!message.data.verificationRemoveBody) return;
+            if (message.data.verificationRemoveBody.protocol !== 0) return;
+
+            const {isAttested, uid } = await this.checkFidVerification(BigInt(message.data.fid), bytesToHex(message.data.verificationRemoveBody.address));
+            if (!isAttested) {
+                log.error(`Farcaster was not attested for fid - address: ${message.data.fid} - ${bytesToHex(message.data.verificationRemoveBody.address)}`);
+                return;
+            }
+
+            const tx = this.revokeAttestation(uid);
+            log.info(`Revoke attestation tx: ${tx}`);
         });
     }
 
@@ -105,13 +128,22 @@ export class Eas {
         return transaction.receipt?.hash;
     }
 
+    // Check if the FID is attested on chain
+    // Returns true if the FID is attested on chain
+    // Returns false if the FID is not attested on chain
     async checkFidVerification(fid: bigint, address: string) {
-        const resp = await this.client.readContract({
+        const key = this.compositeKey(fid, address as `0x${string}`);
+        const uid = await this.client.readContract({
             ...wagmiContract,
             functionName: 'fidAttested',
-            args: [fid],
+            args: [key],
         });
+        const isAttested = uid.toLowerCase() !== DEFAULT_BYTES_VALUE.toLowerCase();
+        return {isAttested , uid};
+    }
 
-        return resp.toLowerCase() === address.toLowerCase();
+    compositeKey(fid: bigint, address: `0x${string}`) {
+        const encodeData = encodePacked(["uint256", "address"],[fid, address])
+        return keccak256(encodeData)
     }
 }
