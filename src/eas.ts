@@ -1,6 +1,4 @@
-import EventEmitter2 from "eventemitter2";
-import { DEFAULT_BYTES_VALUE, VERIFICATION_CREATED_EVENT, VERIFICATION_DELETED_EVENT } from "./constant";
-import { Message } from "@farcaster/hub-nodejs";
+import { DEFAULT_BYTES_VALUE } from "./constant";
 import { log } from "./log";
 import { Attestation, EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import { EAS_CONTRACT_ADDRESS, MIN_CONFIRMATIONS, NETWORK, PRIVATE_KEY, SCHEMA_UID } from "./env";
@@ -9,7 +7,6 @@ import {
     createPublicClient,
     http,
     PublicClient,
-    bytesToHex,
     keccak256,
     encodePacked,
 } from "viem";
@@ -17,77 +14,23 @@ import { optimismSepolia } from "viem/chains";
 import { wagmiContract } from "./contracts/resolver/wagmi.abi";
 
 export class Eas {
-    public emitter: EventEmitter2;
     public eas: EAS;
     public schemaEncoder: SchemaEncoder;
     public client: PublicClient;
 
-    constructor(emitter: EventEmitter2, eas: EAS, schemaEncoder: SchemaEncoder) {
-        this.eas = eas;
-        this.emitter = emitter;
-        this.schemaEncoder = schemaEncoder;
+    constructor() {
+        this.eas = new EAS(EAS_CONTRACT_ADDRESS);
+        this.schemaEncoder = new SchemaEncoder("uint256 fid,address verifyAddress,uint8 protocol");
         this.client = createPublicClient({
             chain: optimismSepolia,
             transport: http(),
         });
     }
 
-    static create(emitter: EventEmitter2) {
-        const eas = new EAS(EAS_CONTRACT_ADDRESS);
-        const schemaEncoder = new SchemaEncoder("uint256 fid,address verifyAddress,uint8 protocol");
-
-        return new Eas(emitter, eas, schemaEncoder);
-    }
-
-    async connect() {
+    connect() {
         const provider = ethers.getDefaultProvider(NETWORK);
         const signer = new ethers.Wallet(PRIVATE_KEY??'', provider);
         this.eas.connect(signer);
-    }
-
-    async handleEvent() {
-        this.emitter.on(VERIFICATION_CREATED_EVENT, async (message: Message) => {
-            log.info(`${VERIFICATION_CREATED_EVENT} data: ${JSON.stringify(message)}`);
-            if (!message.data) return;
-            if (!message.data.verificationAddAddressBody) return;
-            if (message.data.verificationAddAddressBody.protocol !== 0) return;
-
-            log.info(`Attesting farcaster for fid: ${message.data.fid}`);
-            log.info(`Attesting farcaster for address: ${bytesToHex(message.data.verificationAddAddressBody.address)}`);
-
-            const {isAttested} = await this.checkFidVerification(
-                BigInt(message.data.fid),
-                bytesToHex(message.data.verificationAddAddressBody.address)
-            );
-            if (isAttested) {
-                log.error(`Farcaster was attested for fid: ${message.data.fid}`);
-                return;
-            }
-
-            const tx = await this.attestOnChain(
-                BigInt(message.data.fid),
-                bytesToHex(message.data.verificationAddAddressBody.address),
-                message.data.verificationAddAddressBody.protocol
-            );
-
-            log.info(`Attestation tx: ${tx}`);
-        });
-
-        this.emitter.on(VERIFICATION_DELETED_EVENT, async (message: Message) => {
-            log.info(`${VERIFICATION_DELETED_EVENT} data: ${JSON.stringify(message)}`);
-            if (!message.data) return;
-            if (!message.data.verificationRemoveBody) return;
-            if (message.data.verificationRemoveBody.protocol !== 0) return;
-
-            const {isAttested, uid } = await this.checkFidVerification(BigInt(message.data.fid), bytesToHex(message.data.verificationRemoveBody.address));
-            if (!isAttested) {
-                log.error(`Farcaster was not attested for fid - address: ${message.data.fid} - ${bytesToHex(message.data.verificationRemoveBody.address)}`);
-                return;
-            }
-
-            const tx = this.revokeAttestation(uid);
-            log.info(`Revoke attestation tx: ${tx}`);
-        });
     }
 
     async getAttestation(uid: string): Promise<Attestation>{

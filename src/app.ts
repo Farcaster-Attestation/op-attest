@@ -15,26 +15,22 @@ import {
 import { ok } from "neverthrow";
 import { AppDb, migrateToLatest } from "./db";
 import { farcasterTimeToDate } from "./utils";
-import EventEmitter2 from "eventemitter2";
-import { HUB_ID, VERIFICATION_CREATED_EVENT, VERIFICATION_DELETED_EVENT } from "./constant";
-import { Eas } from "./eas";
+import { HUB_ID } from "./constant";
+import { EasQueue } from "./queue/queue";
 
 export class App implements MessageHandler {
     private readonly db: DB;
     private hubSubscriber: HubSubscriber;
     private streamConsumer: HubEventStreamConsumer;
     public redis: RedisClient;
-    public emitter: EventEmitter2;
-    public eas: Eas;
+    public easQueue: EasQueue
 
-
-    constructor(db: DB, redis: RedisClient, hubSubscriber: HubSubscriber, streamConsumer: HubEventStreamConsumer, emitter: EventEmitter2) {
+    constructor(db: DB, redis: RedisClient, hubSubscriber: HubSubscriber, streamConsumer: HubEventStreamConsumer) {
         this.db = db;
         this.redis = redis;
         this.hubSubscriber = hubSubscriber;
         this.streamConsumer = streamConsumer;
-        this.emitter = emitter;
-        this.eas = Eas.create(emitter);
+        this.easQueue = EasQueue.createQueue();
     }
 
     static create(dbUrl: string,
@@ -62,15 +58,12 @@ export class App implements MessageHandler {
             shardIndex);
 
         const streamConsumer = new HubEventStreamConsumer(hub, eventStreamForRead, shardKey);
-        const emitter = new EventEmitter2();
 
-        return new App(db, redis, hubSubscriber, streamConsumer, emitter);
+        return new App(db, redis, hubSubscriber, streamConsumer);
     }
 
     async start() {
-        // connect to the EAS
-        await this.eas.connect();
-
+        await this.easQueue.processJob();
         await this.ensureMigrations();
         // Start the hub subscriber
         await this.hubSubscriber.start();
@@ -83,8 +76,6 @@ export class App implements MessageHandler {
             void this.processHubEvent(event);
             return ok({ skipped: false });
         });
-        log.info("Start handle event");
-        await this.eas.handleEvent();
     }
 
     async handleMessageMerge(
@@ -104,7 +95,9 @@ export class App implements MessageHandler {
 
         const isVerify = isVerificationAddAddressMessage(message) || isVerificationRemoveMessage(message);
         if (isVerify && state === "created") {
-            this.emitter.emit(VERIFICATION_CREATED_EVENT, message);
+            // await attestQueue.add(JOB_NAME, message, { removeOnComplete: true });
+            await this.easQueue.addJob(message);
+
             await appDB
                 .insertInto("verifications")
                 .values({
@@ -119,7 +112,8 @@ export class App implements MessageHandler {
                 })
                 .execute();
         } else if (isVerify && state === "deleted") {
-            this.emitter.emit(VERIFICATION_DELETED_EVENT, message);
+            await this.easQueue.addJob(message);
+
             await appDB
                 .updateTable("verifications")
                 .set({ deletedAt: farcasterTimeToDate(message.data.timestamp) || new Date() })
