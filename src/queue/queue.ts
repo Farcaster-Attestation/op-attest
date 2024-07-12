@@ -2,7 +2,6 @@ import { Job, Queue, Worker } from "bullmq";
 import { QUEUE_NAME } from "../constant";
 import { Message, Protocol } from "@farcaster/hub-nodejs";
 import { log } from "../log";
-import { bytesToHex } from "viem";
 import { connection } from "./redis.server";
 import { Eas } from "../eas";
 
@@ -28,25 +27,24 @@ export class EasQueue {
     async processJob() {
         new Worker(QUEUE_NAME, async (job: Job<Message>) => {
             const message = job.data;
-            log.error(`Processing job: ${job.id}`);
             if (!message.data) return;
             try {
                 if (message.data.verificationAddAddressBody && message.data.verificationAddAddressBody.protocol === Protocol.ETHEREUM) {
                     const { address, protocol } = message.data.verificationAddAddressBody;
-                    const addressObj = JSON.parse(JSON.stringify(address));
+                    const addressHex = '0x' + Buffer.from(address).toString('hex')
                     await this.handleVerifyAddAddress(
                         BigInt(message.data.fid),
-                        bytesToHex(addressObj["data"]),
+                        addressHex as `0x${string}`,
                         protocol,
                     );
                 }
 
                 if (message.data.verificationRemoveBody && message.data.verificationRemoveBody.protocol === Protocol.ETHEREUM) {
                     const { address } = message.data.verificationRemoveBody;
-                    const addressObj = JSON.parse(JSON.stringify(address));
+                    const addressHex = '0x' + Buffer.from(address).toString('hex')
                     await this.handleVerifyRemoveAddress(
                         BigInt(message.data.fid),
-                        bytesToHex(addressObj["data"]),
+                        addressHex as `0x${string}`,
                     );
                 }
             } catch (e) {
