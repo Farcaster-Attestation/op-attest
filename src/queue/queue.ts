@@ -32,11 +32,20 @@ export class EasQueue {
                 if (message.data.verificationAddAddressBody && message.data.verificationAddAddressBody.protocol === Protocol.ETHEREUM) {
                     const { address, protocol } = message.data.verificationAddAddressBody;
                     const addressHex = '0x' + Buffer.from(address).toString('hex')
-                    await this.handleVerifyAddAddress(
-                        BigInt(message.data.fid),
-                        addressHex as `0x${string}`,
-                        protocol,
-                    );
+                    const hash = await this.eas.verifyAddEthAddress(message)
+                    log.info(`Hash: ${hash}`);
+                    if (hash) {
+                        await this.handleVerifyAddAddress(
+                            BigInt(message.data.fid),
+                            addressHex as `0x${string}`,
+                            protocol,
+                        );
+                    }
+                    // await this.handleVerifyAddAddress(
+                    //     BigInt(message.data.fid),
+                    //     addressHex as `0x${string}`,
+                    //     protocol,
+                    // );
                 }
 
                 if (message.data.verificationRemoveBody && message.data.verificationRemoveBody.protocol === Protocol.ETHEREUM) {

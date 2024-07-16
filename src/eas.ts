@@ -12,6 +12,8 @@ import {
 } from "viem";
 import { optimismSepolia } from "viem/chains";
 import { wagmiContract } from "./contracts/resolver/wagmi.abi";
+import { Message, MessageData } from "@farcaster/hub-nodejs";
+import { FarcasterVerifyAbi } from "./contracts/farcaster-verify/farcaster.verify.abi";
 
 export class Eas {
     public eas: EAS;
@@ -83,6 +85,26 @@ export class Eas {
         });
         const isAttested = uid.toLowerCase() !== DEFAULT_BYTES_VALUE.toLowerCase();
         return {isAttested , uid};
+    }
+
+    async verifyAddEthAddress(message: Message) {
+        if (!message.data) {
+            throw new Error("Message data is empty");
+        }
+        const messageBytes = (MessageData.encode(message.data).finish());
+        const hash = await this.client.readContract({
+            ...FarcasterVerifyAbi,
+            functionName: "verifyVerificationAddEthAddressBool",
+            args: {
+                public_key: Buffer.from(message.signer),
+                signature_r: Buffer.from(message.signature).subarray(0, 32),
+                signature_s: Buffer.from(message.signature).subarray(32),
+                message: messageBytes
+            }
+        });
+
+        log.info(`VerificationAddEthAddressBodyVerified: ${hash}`);
+        return hash;
     }
 
     compositeKey(fid: bigint, address: `0x${string}`) {
