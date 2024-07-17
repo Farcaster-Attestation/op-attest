@@ -1,7 +1,15 @@
 import { DEFAULT_BYTES_VALUE } from "./constant";
 import { log } from "./log";
 import { Attestation, EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
-import { EAS_CONTRACT_ADDRESS, MIN_CONFIRMATIONS, NETWORK, PRIVATE_KEY, SCHEMA_UID } from "./env";
+import {
+    EAS_CONTRACT_ADDRESS,
+    FARCASTER_VERIFY_ADDRESS,
+    MIN_CONFIRMATIONS,
+    NETWORK,
+    PRIVATE_KEY,
+    RESOLVER_ADDRESS,
+    SCHEMA_UID,
+} from "./env";
 import { ethers } from "ethers";
 import {
     createPublicClient,
@@ -11,7 +19,7 @@ import {
     encodePacked,
 } from "viem";
 import { optimismSepolia } from "viem/chains";
-import { wagmiContract } from "./contracts/resolver/wagmi.abi";
+import { resolverContractAbi } from "./contracts/resolver/wagmi.abi";
 import { Message, MessageData } from "@farcaster/hub-nodejs";
 import { FarcasterVerifyAbi } from "./contracts/farcaster-verify/farcaster.verify.abi";
 
@@ -31,15 +39,15 @@ export class Eas {
 
     connect() {
         const provider = ethers.getDefaultProvider(NETWORK);
-        const signer = new ethers.Wallet(PRIVATE_KEY??'', provider);
+        const signer = new ethers.Wallet(PRIVATE_KEY ?? "", provider);
         this.eas.connect(signer);
     }
 
-    async getAttestation(uid: string): Promise<Attestation>{
+    async getAttestation(uid: string): Promise<Attestation> {
         return this.eas.getAttestation(uid);
     }
 
-    async attestOnChain(fid: bigint ,address: string, protocol: number) {
+    async attestOnChain(fid: bigint, address: string, protocol: number) {
         if (!this.eas) {
             throw new Error("EAS is not initialized");
         }
@@ -47,7 +55,7 @@ export class Eas {
         const encodedData = this.schemaEncoder.encodeData([
             { name: "fid", value: fid, type: "uint256" },
             { name: "verifyAddress", value: address, type: "address" },
-            { name: "protocol", value: protocol, type: "uint8" }
+            { name: "protocol", value: protocol, type: "uint8" },
         ]);
 
         const tx = await this.eas.attest({
@@ -56,8 +64,8 @@ export class Eas {
                 recipient: address,
                 expirationTime: 0n,
                 revocable: true,
-                data: encodedData
-            }
+                data: encodedData,
+            },
         });
 
         const newAttestationUID = await tx.wait(MIN_CONFIRMATIONS);
@@ -67,7 +75,7 @@ export class Eas {
     }
 
     async revokeAttestation(uid: string) {
-        const transaction = await this.eas.revoke({ data: {uid}, schema: SCHEMA_UID});
+        const transaction = await this.eas.revoke({ data: { uid }, schema: SCHEMA_UID });
         await transaction.wait();
 
         return transaction.receipt?.hash;
@@ -79,12 +87,13 @@ export class Eas {
     async checkFidVerification(fid: bigint, address: string) {
         const key = this.compositeKey(fid, address as `0x${string}`);
         const uid = await this.client.readContract({
-            ...wagmiContract,
-            functionName: 'fidAttested',
+            address: RESOLVER_ADDRESS as `0x${string}`,
+            abi: resolverContractAbi,
+            functionName: "fidAttested",
             args: [key],
         });
         const isAttested = uid.toLowerCase() !== DEFAULT_BYTES_VALUE.toLowerCase();
-        return {isAttested , uid};
+        return { isAttested, uid };
     }
 
     async verifyAddEthAddress(message: Message) {
@@ -92,23 +101,45 @@ export class Eas {
             throw new Error("Message data is empty");
         }
         const messageBytes = (MessageData.encode(message.data).finish());
-        const hash = await this.client.readContract({
-            ...FarcasterVerifyAbi,
+        const isVerified = await this.client.readContract({
+            address: FARCASTER_VERIFY_ADDRESS as `0x${string}`,
+            abi: FarcasterVerifyAbi.abi,
             functionName: "verifyVerificationAddEthAddressBool",
-            args: {
-                public_key: Buffer.from(message.signer),
-                signature_r: Buffer.from(message.signature).subarray(0, 32),
-                signature_s: Buffer.from(message.signature).subarray(32),
-                message: messageBytes
-            }
+            args: [
+                Buffer.from(message.signer),
+                Buffer.from(message.signature).subarray(0, 32),
+                Buffer.from(message.signature).subarray(32),
+                messageBytes,
+            ],
         });
 
-        log.info(`VerificationAddEthAddressBodyVerified: ${hash}`);
-        return hash;
+        log.info(`VerificationAddEthAddressBodyVerified: ${isVerified}`);
+        return isVerified;
+    }
+
+    verifyRemoveAddress(message: Message) {
+        if (!message.data) {
+            throw new Error("Message data is empty");
+        }
+        const messageBytes = (MessageData.encode(message.data).finish());
+        const isVerified = this.client.readContract({
+            address: FARCASTER_VERIFY_ADDRESS as `0x${string}`,
+            abi: FarcasterVerifyAbi.abi,
+            functionName: "verifyVerificationRemoveBool",
+            args: [
+                Buffer.from(message.signer),
+                Buffer.from(message.signature).subarray(0, 32),
+                Buffer.from(message.signature).subarray(32),
+                messageBytes,
+            ],
+        });
+
+        log.info(`VerificationRemoveBodyVerified: ${isVerified}`);
+        return isVerified;
     }
 
     compositeKey(fid: bigint, address: `0x${string}`) {
-        const encodeData = encodePacked(["uint256", "address"],[fid, address])
-        return keccak256(encodeData)
+        const encodeData = encodePacked(["uint256", "address"], [fid, address]);
+        return keccak256(encodeData);
     }
 }

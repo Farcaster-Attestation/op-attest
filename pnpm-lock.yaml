@@ -11,6 +11,9 @@ importers:
       '@ethereum-attestation-service/eas-sdk':
         specifier: ^2.3.0
         version: 2.3.0(ts-node@10.9.2(@swc/core@1.6.7)(@types/node@20.14.7)(typescript@5.5.2))(typescript@5.5.2)
+      '@farcaster/core':
+        specifier: ^0.14.18
+        version: 0.14.18(typescript@5.5.2)
       '@farcaster/hub-nodejs':
         specifier: ^0.11.16
         version: 0.11.16(typescript@5.5.2)
@@ -18,8 +21,8 @@ importers:
         specifier: ^0.1.6
         version: 0.1.6(typescript@5.5.2)
       '@farcaster/shuttle':
-        specifier: ^0.3.3
-        version: 0.3.3(typescript@5.5.2)
+        specifier: ^0.5.6
+        version: 0.5.6(typescript@5.5.2)
       '@jest/globals':
         specifier: ^29.7.0
         version: 29.7.0
@@ -507,6 +510,9 @@ packages:
   '@farcaster/core@0.14.15':
     resolution: {integrity: sha512-qEPaumn5+UMZ7r4VZRt12RgCV98gy/SXP1WZ80DyCvUsbJamgQUfRZH69Z5SKJyuN4SAJo6gknZ4ws5+XLyzWA==}
 
+  '@farcaster/core@0.14.18':
+    resolution: {integrity: sha512-uyYJEPcSier9GtcWo23nMZX1s+rXEFhtN/ObDlXWYRov1iCa3R3XtUJ+QtjpfgTL9zBGjhs9yB4BWMtEjL5Ldw==}
+
   '@farcaster/hot-shots@10.0.0':
     resolution: {integrity: sha512-wVbdYvZL41SuCOFOUPsso16Ld/CZtjhVE0dJr8xgR2AygniI7YR9a9lmtIZS94/LUxL84JLCAkUJzTIpPKCagQ==}
     engines: {node: '>=10.0.0'}
@@ -514,11 +520,14 @@ packages:
   '@farcaster/hub-nodejs@0.11.16':
     resolution: {integrity: sha512-u7VHi3CvCK/R6bkZ3MkU3juhIXmrYQAGTZ2QLSgDZsOihUnqtvyn9cSV01LFV/1Q3ax4h3B6+54aVCblZW+68Q==}
 
+  '@farcaster/hub-nodejs@0.11.20':
+    resolution: {integrity: sha512-DJ2i05o1pPPwV2IsclYjlVj5ADr1qkZRZYYVdu9ieC0+xANpYSGABlEeTFwGkzSbc+zyPn9ZXWqzvooY1MG1jw==}
+
   '@farcaster/hub-shuttle@0.1.6':
     resolution: {integrity: sha512-ZFgVMoajAIeX7zVGLPVF0U62gS2UwRFxdJFV2PSREs0+TtylbURPl7mDmdZmBomD20QD7PjA5Jf2Lk6tC3nFYg==}
 
-  '@farcaster/shuttle@0.3.3':
-    resolution: {integrity: sha512-1D0A3CKx/PTAqrsUN0SWvyt8sT+rcSHSGal+i7oDm70B9hWEdy40qPSBuTeox1uc6Us/rnNTo9BgQdJfINPKpA==}
+  '@farcaster/shuttle@0.5.6':
+    resolution: {integrity: sha512-5qT5f6NcQLctV3DqkOZGYBQezrGlzlg3W4WHM/NOYj+N10hY1pEhcwfxDMjlqb5HQzgXKW2YCR0VkPO1C/nQTQ==}
 
   '@fastify/busboy@2.1.1':
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
@@ -1408,6 +1417,10 @@ packages:
   command-exists@1.2.9:
     resolution: {integrity: sha512-LTQ/SGc+s0Xc0Fu5WaKnR0YiygZkm9eKFvyS+fRsU7/ZWFF8ykFM6Pc9aCVf1+xasOOZpO3BAVgVrKvsqKHV7w==}
 
+  commander@11.0.0:
+    resolution: {integrity: sha512-9HMlXtt/BNoYr8ooyjjNRdIilOTkVJXB+GhxMTtOKwk0R4j4lS4NpjuqmRxroBfnfTSHQIHQB7wryHhXarNjmQ==}
+    engines: {node: '>=16'}
+
   commander@11.1.0:
     resolution: {integrity: sha512-yPVavfyCcRhmorC7rWlkHn15b4wDVgVmBA7kV4QVBsF7kv/9TKJAbAXVTxvTnwP8HHKjRCJDClKbciiYS7p0DQ==}
     engines: {node: '>=16'}
@@ -1528,6 +1541,10 @@ packages:
 
   discontinuous-range@1.0.0:
     resolution: {integrity: sha512-c68LpLbO+7kP/b1Hr1qs8/BJ09F5khZGTxqxZuhzxpmwJKOgRFHJWIb9/KmqnqHhLdO55aOxFH/EGBvUQbL/RQ==}
+
+  dotenv@16.4.5:
+    resolution: {integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==}
+    engines: {node: '>=12'}
 
   electron-to-chromium@1.4.811:
     resolution: {integrity: sha512-CDyzcJ5XW78SHzsIOdn27z8J4ist8eaFLhdto2hSMSJQgsiwvbv2fbizcKUICryw1Wii1TI/FEkvzvJsR3awrA==}
@@ -3668,11 +3685,36 @@ snapshots:
       - utf-8-validate
       - zod
 
+  '@farcaster/core@0.14.18(typescript@5.5.2)':
+    dependencies:
+      '@noble/curves': 1.4.0
+      '@noble/hashes': 1.4.0
+      bs58: 5.0.0
+      neverthrow: 6.2.2
+      viem: 1.21.4(typescript@5.5.2)
+    transitivePeerDependencies:
+      - bufferutil
+      - typescript
+      - utf-8-validate
+      - zod
+
   '@farcaster/hot-shots@10.0.0': {}
 
   '@farcaster/hub-nodejs@0.11.16(typescript@5.5.2)':
     dependencies:
       '@farcaster/core': 0.14.15(typescript@5.5.2)
+      '@grpc/grpc-js': 1.8.22
+      '@noble/hashes': 1.4.0
+      neverthrow: 6.2.2
+    transitivePeerDependencies:
+      - bufferutil
+      - typescript
+      - utf-8-validate
+      - zod
+
+  '@farcaster/hub-nodejs@0.11.20(typescript@5.5.2)':
+    dependencies:
+      '@farcaster/core': 0.14.18(typescript@5.5.2)
       '@grpc/grpc-js': 1.8.22
       '@noble/hashes': 1.4.0
       neverthrow: 6.2.2
@@ -3703,11 +3745,12 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@farcaster/shuttle@0.3.3(typescript@5.5.2)':
+  '@farcaster/shuttle@0.5.6(typescript@5.5.2)':
     dependencies:
       '@farcaster/hot-shots': 10.0.0
-      '@farcaster/hub-nodejs': 0.11.16(typescript@5.5.2)
-      commander: 11.1.0
+      '@farcaster/hub-nodejs': 0.11.20(typescript@5.5.2)
+      commander: 11.0.0
+      dotenv: 16.4.5
       ioredis: 5.4.1
       kysely: 0.26.3
       neverthrow: 6.2.2
@@ -4735,6 +4778,8 @@ snapshots:
 
   command-exists@1.2.9: {}
 
+  commander@11.0.0: {}
+
   commander@11.1.0: {}
 
   commander@12.1.0: {}
@@ -4833,6 +4878,8 @@ snapshots:
       path-type: 4.0.0
 
   discontinuous-range@1.0.0: {}
+
+  dotenv@16.4.5: {}
 
   electron-to-chromium@1.4.811: {}
 
