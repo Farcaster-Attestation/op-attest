@@ -97,19 +97,16 @@ export class Eas {
     }
 
     async verifyAddEthAddress(message: Message) {
-        if (!message.data) {
-            throw new Error("Message data is empty");
-        }
-        const messageBytes = (MessageData.encode(message.data).finish());
+        const { messageHex, publicKey, signature_r, signature_s } = this.convertInput(message);
         const isVerified = await this.client.readContract({
             address: FARCASTER_VERIFY_ADDRESS as `0x${string}`,
             abi: FarcasterVerifyAbi.abi,
             functionName: "verifyVerificationAddEthAddressBool",
             args: [
-                Buffer.from(message.signer),
-                Buffer.from(message.signature).subarray(0, 32),
-                Buffer.from(message.signature).subarray(32),
-                messageBytes,
+                publicKey,
+                signature_r,
+                signature_s,
+                messageHex,
             ],
         });
 
@@ -118,19 +115,16 @@ export class Eas {
     }
 
     verifyRemoveAddress(message: Message) {
-        if (!message.data) {
-            throw new Error("Message data is empty");
-        }
-        const messageBytes = (MessageData.encode(message.data).finish());
+        const { messageHex, publicKey, signature_r, signature_s } = this.convertInput(message);
         const isVerified = this.client.readContract({
             address: FARCASTER_VERIFY_ADDRESS as `0x${string}`,
             abi: FarcasterVerifyAbi.abi,
             functionName: "verifyVerificationRemoveBool",
             args: [
-                Buffer.from(message.signer),
-                Buffer.from(message.signature).subarray(0, 32),
-                Buffer.from(message.signature).subarray(32),
-                messageBytes,
+                publicKey,
+                signature_r,
+                signature_s,
+                messageHex,
             ],
         });
 
@@ -141,5 +135,17 @@ export class Eas {
     compositeKey(fid: bigint, address: `0x${string}`) {
         const encodeData = encodePacked(["uint256", "address"], [fid, address]);
         return keccak256(encodeData);
+    }
+
+    convertInput(message: Message) {
+        if (!message.data) {
+            throw new Error("Message data is empty");
+        }
+        const messageBytes = (MessageData.encode(message.data).finish());
+        const messageHex = `0x${Buffer.from(messageBytes).toString("hex")}` as `0x${string}`;
+        const publicKey = `0x${Buffer.from(message.signer).toString("hex")}` as `0x${string}`;
+        const signature_r = `0x${Buffer.from(message.signature).subarray(0, 32).toString("hex")}` as `0x${string}`;
+        const signature_s = `0x${Buffer.from(message.signature).subarray(32).toString("hex")}` as `0x${string}`;
+        return { messageHex, publicKey, signature_r, signature_s };
     }
 }

@@ -80,6 +80,7 @@ describe("eas", () => {
 
     const message = messageResult._unsafeUnwrap()
 
-    await eas.verifyAddEthAddress(message)
+    const result = await eas.verifyAddEthAddress(message)
+    expect(result).toBe(true)
   });
 })

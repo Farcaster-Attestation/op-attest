@@ -32,29 +32,28 @@ export class EasQueue {
                 if (message.data.verificationAddAddressBody && message.data.verificationAddAddressBody.protocol === Protocol.ETHEREUM) {
                     const { address, protocol } = message.data.verificationAddAddressBody;
                     const addressHex = '0x' + Buffer.from(address).toString('hex')
-                    const hash = await this.eas.verifyAddEthAddress(message)
-                    log.info(`Hash: ${hash}`);
-                    if (hash) {
+                    const verified = await this.eas.verifyAddEthAddress(message)
+                    log.info(`Verify add address message status: ${verified}`);
+                    if (verified) {
                         await this.handleVerifyAddAddress(
                             BigInt(message.data.fid),
                             addressHex as `0x${string}`,
                             protocol,
                         );
                     }
-                    // await this.handleVerifyAddAddress(
-                    //     BigInt(message.data.fid),
-                    //     addressHex as `0x${string}`,
-                    //     protocol,
-                    // );
                 }
 
                 if (message.data.verificationRemoveBody && message.data.verificationRemoveBody.protocol === Protocol.ETHEREUM) {
                     const { address } = message.data.verificationRemoveBody;
                     const addressHex = '0x' + Buffer.from(address).toString('hex')
-                    await this.handleVerifyRemoveAddress(
-                        BigInt(message.data.fid),
-                        addressHex as `0x${string}`,
-                    );
+                    const verified = await this.eas.verifyRemoveAddress(message)
+                    log.info(`Verify remove address message status: ${verified}`);
+                    if (verified) {
+                        await this.handleVerifyRemoveAddress(
+                            BigInt(message.data.fid),
+                            addressHex as `0x${string}`,
+                        );
+                    }
                 }
             } catch (e) {
                 log.error(`Error processing job: ${e}`);
