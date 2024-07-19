@@ -1,15 +1,18 @@
 import { Job, Queue, Worker } from "bullmq";
 import { QUEUE_NAME } from "../constant";
-import { Message, Protocol } from "@farcaster/hub-nodejs";
+import { Protocol } from "@farcaster/hub-nodejs";
 import { log } from "../log";
 import { connection } from "./redis.server";
 import { Eas } from "../eas";
+import { QueueData } from "./queue.data";
+import { MessageData, MessageType } from "@farcaster/core";
+import { hexToBytes } from "viem";
 
 export class EasQueue {
-    public queue: Queue<Message>;
+    public queue: Queue<QueueData>;
     public eas: Eas;
 
-    constructor(queue: Queue<Message>) {
+    constructor(queue: Queue<QueueData>) {
         this.queue = queue;
         this.eas = new Eas();
         this.eas.connect();
@@ -20,40 +23,51 @@ export class EasQueue {
         return new EasQueue(queue);
     }
 
-    async addJob(data: Message) {
-        await this.queue.add(QUEUE_NAME, data, {removeOnComplete: true});
+    async addJob(data: QueueData) {
+        await this.queue.add(QUEUE_NAME, data, { removeOnComplete: true });
     }
 
     async processJob() {
-        new Worker(QUEUE_NAME, async (job: Job<Message>) => {
-            const message = job.data;
-            if (!message.data) return;
+        new Worker(QUEUE_NAME, async (job: Job<QueueData>) => {
+            const queueData = job.data;
             try {
-                if (message.data.verificationAddAddressBody && message.data.verificationAddAddressBody.protocol === Protocol.ETHEREUM) {
-                    const { address, protocol } = message.data.verificationAddAddressBody;
-                    const addressHex = '0x' + Buffer.from(address).toString('hex')
-                    const verified = await this.eas.verifyAddEthAddress(message)
-                    log.info(`Verify add address message status: ${verified}`);
-                    if (verified) {
-                        await this.handleVerifyAddAddress(
-                            BigInt(message.data.fid),
-                            addressHex as `0x${string}`,
-                            protocol,
-                        );
-                    }
-                }
-
-                if (message.data.verificationRemoveBody && message.data.verificationRemoveBody.protocol === Protocol.ETHEREUM) {
-                    const { address } = message.data.verificationRemoveBody;
-                    const addressHex = '0x' + Buffer.from(address).toString('hex')
-                    const verified = await this.eas.verifyRemoveAddress(message)
-                    log.info(`Verify remove address message status: ${verified}`);
-                    if (verified) {
-                        await this.handleVerifyRemoveAddress(
-                            BigInt(message.data.fid),
-                            addressHex as `0x${string}`,
-                        );
-                    }
+                const msgData = MessageData.decode(hexToBytes(queueData.messageDataHex));
+                log.debug(`Processing job: ${job.id} - data: ${JSON.stringify(msgData)}`);
+                switch (msgData.type) {
+                    case MessageType.VERIFICATION_ADD_ETH_ADDRESS:
+                        if (!msgData.verificationAddAddressBody) return;
+                        if (msgData.verificationAddAddressBody.protocol === Protocol.ETHEREUM) {
+                            const { address, protocol } = msgData.verificationAddAddressBody;
+                            const addressHex = "0x" + Buffer.from(address).toString("hex");
+                            const verified = await this.eas.verifyAddEthAddress(queueData);
+                            log.debug(`Verify add address message status: ${verified}`);
+                            if (verified) {
+                                await this.handleVerifyAddAddress(
+                                    BigInt(msgData.fid),
+                                    addressHex as `0x${string}`,
+                                    protocol,
+                                );
+                            }
+                        }
+                        break;
+                    case MessageType.VERIFICATION_REMOVE:
+                        if (!msgData.verificationRemoveBody) return;
+                        if (msgData.verificationRemoveBody.protocol === Protocol.ETHEREUM) {
+                            const { address } = msgData.verificationRemoveBody;
+                            const addressHex = "0x" + Buffer.from(address).toString("hex");
+                            const verified = await this.eas.verifyRemoveAddress(queueData);
+                            log.debug(`Verify remove address message status: ${verified}`);
+                            if (verified) {
+                                await this.handleVerifyRemoveAddress(
+                                    BigInt(msgData.fid),
+                                    addressHex as `0x${string}`,
+                                );
+                            }
+                        }
+                        break;
+                    default:
+                        log.error(`Unknown message type: ${msgData.type}`);
+                        return;
                 }
             } catch (e) {
                 log.error(`Error processing job: ${e}`);

@@ -14,7 +14,7 @@ import {
 } from "@farcaster/hub-nodejs";
 import { ok } from "neverthrow";
 import { AppDb, migrateToLatest } from "./db";
-import { farcasterTimeToDate } from "./utils";
+import { farcasterTimeToDate, transformQueueData } from "./utils";
 import { HUB_ID } from "./constant";
 import { EasQueue } from "./queue/queue";
 
@@ -95,8 +95,8 @@ export class App implements MessageHandler {
 
         const isVerify = isVerificationAddAddressMessage(message) || isVerificationRemoveMessage(message);
         if (isVerify && state === "created") {
-            // await attestQueue.add(JOB_NAME, message, { removeOnComplete: true });
-            await this.easQueue.addJob(message);
+            const queueData = transformQueueData(message);
+            await this.easQueue.addJob(queueData);
 
             await appDB
                 .insertInto("verifications")
@@ -112,7 +112,8 @@ export class App implements MessageHandler {
                 })
                 .execute();
         } else if (isVerify && state === "deleted") {
-            await this.easQueue.addJob(message);
+            const queueData = transformQueueData(message);
+            await this.easQueue.addJob(queueData);
 
             await appDB
                 .updateTable("verifications")

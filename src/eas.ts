@@ -20,8 +20,8 @@ import {
 } from "viem";
 import { optimismSepolia } from "viem/chains";
 import { resolverContractAbi } from "./contracts/resolver/wagmi.abi";
-import { Message, MessageData } from "@farcaster/hub-nodejs";
 import { FarcasterVerifyAbi } from "./contracts/farcaster-verify/farcaster.verify.abi";
+import { QueueData } from "./queue/queue.data";
 
 export class Eas {
     public eas: EAS;
@@ -96,56 +96,42 @@ export class Eas {
         return { isAttested, uid };
     }
 
-    async verifyAddEthAddress(message: Message) {
-        const { messageHex, publicKey, signature_r, signature_s } = this.convertInput(message);
+    async verifyAddEthAddress(queueData: QueueData) {
         const isVerified = await this.client.readContract({
             address: FARCASTER_VERIFY_ADDRESS as `0x${string}`,
             abi: FarcasterVerifyAbi.abi,
             functionName: "verifyVerificationAddEthAddressBool",
             args: [
-                publicKey,
-                signature_r,
-                signature_s,
-                messageHex,
+                queueData.publicKey,
+                queueData.signatureR,
+                queueData.signatureS,
+                queueData.messageDataHex,
             ],
         });
 
-        log.info(`VerificationAddEthAddressBodyVerified: ${isVerified}`);
+        log.info(`VerificationAddEthAddressBodyVerified: ${JSON.stringify(isVerified)}`);
         return isVerified;
     }
 
-    verifyRemoveAddress(message: Message) {
-        const { messageHex, publicKey, signature_r, signature_s } = this.convertInput(message);
+    verifyRemoveAddress(queueData: QueueData) {
         const isVerified = this.client.readContract({
             address: FARCASTER_VERIFY_ADDRESS as `0x${string}`,
             abi: FarcasterVerifyAbi.abi,
             functionName: "verifyVerificationRemoveBool",
             args: [
-                publicKey,
-                signature_r,
-                signature_s,
-                messageHex,
+                queueData.publicKey,
+                queueData.signatureR,
+                queueData.signatureS,
+                queueData.messageDataHex,
             ],
         });
 
-        log.info(`VerificationRemoveBodyVerified: ${isVerified}`);
+        log.info(`VerificationRemoveBodyVerified: ${JSON.stringify(isVerified)}`);
         return isVerified;
     }
 
     compositeKey(fid: bigint, address: `0x${string}`) {
         const encodeData = encodePacked(["uint256", "address"], [fid, address]);
         return keccak256(encodeData);
-    }
-
-    convertInput(message: Message) {
-        if (!message.data) {
-            throw new Error("Message data is empty");
-        }
-        const messageBytes = (MessageData.encode(message.data).finish());
-        const messageHex = `0x${Buffer.from(messageBytes).toString("hex")}` as `0x${string}`;
-        const publicKey = `0x${Buffer.from(message.signer).toString("hex")}` as `0x${string}`;
-        const signature_r = `0x${Buffer.from(message.signature).subarray(0, 32).toString("hex")}` as `0x${string}`;
-        const signature_s = `0x${Buffer.from(message.signature).subarray(32).toString("hex")}` as `0x${string}`;
-        return { messageHex, publicKey, signature_r, signature_s };
     }
 }
