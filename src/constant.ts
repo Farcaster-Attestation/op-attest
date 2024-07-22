@@ -1,6 +1,6 @@
 export const HUB_ID = "op_attest";
-export const VERIFICATION_CREATED_EVENT = "verification_created";
-export const VERIFICATION_DELETED_EVENT = "verification_deleted";
 export const DEFAULT_BYTES_VALUE = "0x0000000000000000000000000000000000000000000000000000000000000000";
-export const QUEUE_NAME = "eas-attest";
-export const JOB_NAME = "eas-job";
+export const EAS_QUEUE_NAME = "eas-attest";
+export const BACKFILL_QUEUE_NAME = "backfill";
+export const RECONCILE_JOB_NAME = "reconcile";
+export const COMPLETION_MARKER_JOB_NAME = "completionMarker";

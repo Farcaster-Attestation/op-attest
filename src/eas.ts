@@ -21,7 +21,7 @@ import {
 import { optimismSepolia } from "viem/chains";
 import { resolverContractAbi } from "./contracts/resolver/wagmi.abi";
 import { FarcasterVerifyAbi } from "./contracts/farcaster-verify/farcaster.verify.abi";
-import { QueueData } from "./queue/queue.data";
+import { EasQueueData } from "./queue/eas.queue.data";
 
 export class Eas {
     public eas: EAS;
@@ -96,7 +96,7 @@ export class Eas {
         return { isAttested, uid };
     }
 
-    async verifyAddEthAddress(queueData: QueueData) {
+    async verifyAddEthAddress(queueData: EasQueueData) {
         const isVerified = await this.client.readContract({
             address: FARCASTER_VERIFY_ADDRESS as `0x${string}`,
             abi: FarcasterVerifyAbi.abi,
@@ -113,7 +113,7 @@ export class Eas {
         return isVerified;
     }
 
-    verifyRemoveAddress(queueData: QueueData) {
+    verifyRemoveAddress(queueData: EasQueueData) {
         const isVerified = this.client.readContract({
             address: FARCASTER_VERIFY_ADDRESS as `0x${string}`,
             abi: FarcasterVerifyAbi.abi,

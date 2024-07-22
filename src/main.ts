@@ -1,6 +1,7 @@
 import { readFileSync } from "fs";
 import { Command } from "commander";
 import { StartCMD } from "./command/start";
+import { BackFillCMD } from "./command/backfill";
 
 const program = new Command()
     .name("op-attest")
@@ -8,5 +9,6 @@ const program = new Command()
     .version(JSON.parse(readFileSync("./package.json").toString()).version);
 
 program.command("start").description("Starts the op-attest").action(StartCMD.run);
+program.command("backfill").description("Backfill the op-attest").action(BackFillCMD.run);
 
 program.parse(process.argv);

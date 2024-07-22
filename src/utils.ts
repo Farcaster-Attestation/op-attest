@@ -1,5 +1,5 @@
 import { fromFarcasterTime, Message } from "@farcaster/hub-nodejs";
-import { QueueData } from "./queue/queue.data";
+import { EasQueueData } from "./queue/eas.queue.data";
 import { MessageData } from "@farcaster/core";
 
 export function farcasterTimeToDate(time: number): Date;
@@ -13,7 +13,7 @@ export function farcasterTimeToDate(time: number | null | undefined): Date | nul
     return new Date(result.value);
 }
 
-export function transformQueueData(message: Message): QueueData {
+export function transformQueueData(message: Message): EasQueueData {
     if (!message.data) throw new Error("Message data is missing");
     const messageBytes = MessageData.encode(message.data).finish();
 

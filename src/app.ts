@@ -15,22 +15,24 @@ import {
 import { ok } from "neverthrow";
 import { AppDb, migrateToLatest } from "./db";
 import { farcasterTimeToDate, transformQueueData } from "./utils";
-import { HUB_ID } from "./constant";
-import { EasQueue } from "./queue/queue";
+import { HUB_ID, EAS_QUEUE_NAME } from "./constant";
+import { QueueFactory } from "./queue/queue";
+import { Queue } from "bullmq";
+import { EasWorker } from "./queue/eas.worker";
 
 export class App implements MessageHandler {
     private readonly db: DB;
     private hubSubscriber: HubSubscriber;
     private streamConsumer: HubEventStreamConsumer;
     public redis: RedisClient;
-    public easQueue: EasQueue
+    public easQueue: Queue
 
     constructor(db: DB, redis: RedisClient, hubSubscriber: HubSubscriber, streamConsumer: HubEventStreamConsumer) {
         this.db = db;
         this.redis = redis;
         this.hubSubscriber = hubSubscriber;
         this.streamConsumer = streamConsumer;
-        this.easQueue = EasQueue.createQueue();
+        this.easQueue = QueueFactory.getQueue(EAS_QUEUE_NAME, redis.client);
     }
 
     static create(dbUrl: string,
@@ -63,7 +65,10 @@ export class App implements MessageHandler {
     }
 
     async start() {
-        await this.easQueue.processJob();
+        // Run EAS worker
+        const easWorker = new EasWorker().getWorker(this.redis.client);
+        await easWorker.run();
+
         await this.ensureMigrations();
         // Start the hub subscriber
         await this.hubSubscriber.start();
@@ -96,7 +101,7 @@ export class App implements MessageHandler {
         const isVerify = isVerificationAddAddressMessage(message) || isVerificationRemoveMessage(message);
         if (isVerify && state === "created") {
             const queueData = transformQueueData(message);
-            await this.easQueue.addJob(queueData);
+            await this.easQueue.add(EAS_QUEUE_NAME, queueData);
 
             await appDB
                 .insertInto("verifications")
@@ -113,7 +118,7 @@ export class App implements MessageHandler {
                 .execute();
         } else if (isVerify && state === "deleted") {
             const queueData = transformQueueData(message);
-            await this.easQueue.addJob(queueData);
+            await this.easQueue.add(EAS_QUEUE_NAME, queueData);
 
             await appDB
                 .updateTable("verifications")
@@ -136,5 +141,13 @@ export class App implements MessageHandler {
             log.error("Failed to migrate database", result.error);
             throw result.error;
         }
+    }
+
+    getHubSubscriber() {
+        return this.hubSubscriber;
+    }
+
+    getDb() {
+        return this.db;
     }
 }
