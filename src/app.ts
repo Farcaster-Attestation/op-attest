@@ -15,10 +15,11 @@ import {
 import { ok } from "neverthrow";
 import { AppDb, migrateToLatest } from "./db";
 import { farcasterTimeToDate, transformQueueData } from "./utils";
-import { HUB_ID, EAS_QUEUE_NAME } from "./constant";
+import { HUB_ID, EAS_QUEUE_NAME, RECONCILE_JOB_NAME, COMPLETION_MARKER_JOB_NAME } from "./constant";
 import { QueueFactory } from "./queue/queue";
 import { Queue } from "bullmq";
 import { EasWorker } from "./queue/eas.worker";
+import { MAX_FID } from "./env";
 
 export class App implements MessageHandler {
     private readonly db: DB;
@@ -141,6 +142,34 @@ export class App implements MessageHandler {
             log.error("Failed to migrate database", result.error);
             throw result.error;
         }
+    }
+
+    async backfillFids(fids: number[], backfillQueue: Queue) {
+        const startedAt = Date.now();
+        if (fids.length === 0) {
+            const maxFidResult = await this.hubSubscriber.hubClient!.getFids({ pageSize: 1, reverse: true });
+            if (maxFidResult.isErr()) {
+                log.error("Failed to get max fid", maxFidResult.error);
+                throw maxFidResult.error;
+            }
+            const maxFid = MAX_FID ? parseInt(MAX_FID) : maxFidResult.value.fids[0];
+            if (!maxFid) {
+                log.error("Max fid was undefined");
+                throw new Error("Max fid was undefined");
+            }
+            log.info(`Queuing up fids upto: ${maxFid}`);
+            // create an array of arrays in batches of 100 upto maxFid
+            const batchSize = 10;
+            const fids = Array.from({ length: Math.ceil(maxFid / batchSize) }, (_, i) => i * batchSize).map((fid) => fid + 1);
+            for (const start of fids) {
+                const subset = Array.from({ length: batchSize }, (_, i) => start + i);
+                await backfillQueue.add("reconcile", { fids: subset });
+            }
+        } else {
+            await backfillQueue.add(RECONCILE_JOB_NAME, { fids });
+        }
+        await backfillQueue.add(COMPLETION_MARKER_JOB_NAME, { startedAt });
+        log.info("Backfill jobs queued");
     }
 
     getHubSubscriber() {
