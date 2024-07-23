@@ -7,7 +7,7 @@ import { BackfillWorker } from "../queue/backfill.worker";
 
 export class BackFillCMD {
     static async run() {
-        log.info(`Creating app connecting to: ${POSTGRES_URL}, ${REDIS_URL}, ${HUB_HOST}`);
+        log.info(`Creating app connecting to: ${REDIS_URL}, ${HUB_HOST}`);
         const app = App.create(POSTGRES_URL, REDIS_URL, HUB_HOST, HUB_SSL, TOTAL_SHARDS, SHARD_INDEX);
         const fids = BACKFILL_FIDS ? BACKFILL_FIDS.split(",").map((fid) => parseInt(fid)) : [];
         log.info(`Backfilling fids: ${fids}`);

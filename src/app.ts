@@ -66,10 +66,6 @@ export class App implements MessageHandler {
     }
 
     async start() {
-        // Run EAS worker
-        const easWorker = new EasWorker().getWorker(this.redis.client);
-        await easWorker.run();
-
         await this.ensureMigrations();
         // Start the hub subscriber
         await this.hubSubscriber.start();
@@ -82,6 +78,10 @@ export class App implements MessageHandler {
             void this.processHubEvent(event);
             return ok({ skipped: false });
         });
+
+        log.info("Starting EAS worker");
+        const easWorker = new EasWorker().getWorker(this.redis.client);
+        await easWorker.run();
     }
 
     async handleMessageMerge(
@@ -163,7 +163,7 @@ export class App implements MessageHandler {
             const fids = Array.from({ length: Math.ceil(maxFid / batchSize) }, (_, i) => i * batchSize).map((fid) => fid + 1);
             for (const start of fids) {
                 const subset = Array.from({ length: batchSize }, (_, i) => start + i);
-                await backfillQueue.add("reconcile", { fids: subset });
+                await backfillQueue.add(RECONCILE_JOB_NAME, { fids: subset });
             }
         } else {
             await backfillQueue.add(RECONCILE_JOB_NAME, { fids });

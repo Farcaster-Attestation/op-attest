@@ -42,16 +42,18 @@ export class EasWorker {
                 case MessageType.VERIFICATION_ADD_ETH_ADDRESS:
                     if (!msgData.verificationAddAddressBody) return;
                     if (msgData.verificationAddAddressBody.protocol === Protocol.ETHEREUM) {
-                        const { address, protocol } = msgData.verificationAddAddressBody;
-                        const addressHex = "0x" + Buffer.from(address).toString("hex");
-                        const verified = await this.eas.verifyAddEthAddress(queueData);
-                        log.debug(`Verify add address message status: ${verified}`);
-                        if (verified) {
-                            await this.handleVerifyAddAddress(
-                                BigInt(msgData.fid),
-                                addressHex as `0x${string}`,
-                                protocol,
-                            );
+                        if (msgData.verificationAddAddressBody.chainId === 0 || msgData.verificationAddAddressBody.chainId === 10) {
+                            const { address, protocol } = msgData.verificationAddAddressBody;
+                            const addressHex = "0x" + Buffer.from(address).toString("hex");
+                            const verified = await this.eas.verifyAddEthAddress(queueData);
+                            log.debug(`Verify add address message status: ${verified}`);
+                            if (verified) {
+                                await this.handleVerifyAddAddress(
+                                    BigInt(msgData.fid),
+                                    addressHex as `0x${string}`,
+                                    protocol,
+                                );
+                            }
                         }
                     }
                     break;
