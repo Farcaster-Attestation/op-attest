@@ -7,7 +7,7 @@ import {
     MIN_CONFIRMATIONS,
     NETWORK,
     PRIVATE_KEY,
-    RESOLVER_ADDRESS,
+    RESOLVER_ADDRESS, RPC_URL,
     SCHEMA_UID,
 } from "./env";
 import { ethers } from "ethers";
@@ -33,12 +33,13 @@ export class Eas {
         this.schemaEncoder = new SchemaEncoder("uint256 fid,address verifyAddress,uint8 protocol");
         this.client = createPublicClient({
             chain: optimismSepolia,
-            transport: http(),
+            transport: http(RPC_URL),
         });
     }
 
     connect() {
-        const provider = ethers.getDefaultProvider(NETWORK);
+        // const provider = ethers.getDefaultProvider(NETWORK);
+        const provider = new ethers.JsonRpcProvider(RPC_URL, NETWORK);
         const signer = new ethers.Wallet(PRIVATE_KEY ?? "", provider);
         this.eas.connect(signer);
     }
@@ -113,8 +114,8 @@ export class Eas {
         return isVerified;
     }
 
-    verifyRemoveAddress(queueData: EasQueueData) {
-        const isVerified = this.client.readContract({
+    async verifyRemoveAddress(queueData: EasQueueData) {
+        const isVerified =  await this.client.readContract({
             address: FARCASTER_VERIFY_ADDRESS as `0x${string}`,
             abi: FarcasterVerifyAbi.abi,
             functionName: "verifyVerificationRemoveBool",

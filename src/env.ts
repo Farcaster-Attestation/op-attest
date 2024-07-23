@@ -15,6 +15,7 @@ export const SCHEMA_UID = process.env["SCHEMA_UID"] || "0x2437dfe5b04815e0ef259a
 export const RESOLVER_ADDRESS = process.env["RESOLVER_ADDRESS"] || "0x856448575812346458bCdE68eB6F1a03e74DC743";
 export const MIN_CONFIRMATIONS = parseInt(process.env["MIN_CONFIRMATIONS"] || "1");
 export const FARCASTER_VERIFY_ADDRESS = process.env["FARCASTER_VERIFY_ADDRESS"] || "0xa88cB25ae5Bb4EFd28e4Aa9ac620F38d4d18f209";
+export const RPC_URL = process.env["RPC_URL"] || "";
 
 // backfill
 export const BACKFILL_FIDS = process.env["FIDS"] || "";
