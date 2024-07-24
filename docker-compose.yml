@@ -20,6 +20,7 @@ services:
       retries: 3
     networks:
       - shuttle-network
+  
   redis:
     image: 'redis:7.2-alpine'
     restart: unless-stopped
@@ -37,13 +38,18 @@ services:
     networks:
       - shuttle-network
 
-  redis-insight:
-    image: redis/redisinsight:latest
-    restart: always
-    ports:
-      - "15540:5540"
-    volumes:
-      - redis-insight:/data
+  shuttle:
+    build: .
+    restart: unless-stopped
+    command: pnpm start start
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - POSTGRES_URL=postgres://shuttle:password@postgres:5432
+      - REDIS_URL=redis:6379
+    env_file:
+      - .env
     networks:
       - shuttle-network
 
