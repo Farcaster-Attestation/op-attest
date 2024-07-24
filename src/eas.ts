@@ -34,7 +34,7 @@ export class Eas {
         this.client = createPublicClient({
             chain: optimismSepolia,
             transport: http(RPC_URL),
-        });
+        }) as PublicClient;
     }
 
     connect() {

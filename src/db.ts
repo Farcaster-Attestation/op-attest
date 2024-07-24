@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { HubTables } from "@farcaster/hub-shuttle";
 import { DB, Fid } from "@farcaster/shuttle";
 
-const createMigrator = async (db: DB) => {
+const createMigrator = async (db: Kysely<HubTables>) => {
     const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
     return new Migrator({
@@ -21,7 +21,7 @@ const createMigrator = async (db: DB) => {
 };
 
 export const migrateToLatest = async (db: DB, log: Logger): Promise<Result<void, unknown>> => {
-    const migrator = await createMigrator(db);
+    const migrator = await createMigrator(db as unknown as Kysely<HubTables>);
 
     const { error, results } = await migrator.migrateToLatest();
 
