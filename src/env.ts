@@ -16,6 +16,7 @@ export const RESOLVER_ADDRESS = process.env["RESOLVER_ADDRESS"] || "0x8564485758
 export const MIN_CONFIRMATIONS = parseInt(process.env["MIN_CONFIRMATIONS"] || "1");
 export const FARCASTER_VERIFY_ADDRESS = process.env["FARCASTER_VERIFY_ADDRESS"] || "0xa88cB25ae5Bb4EFd28e4Aa9ac620F38d4d18f209";
 export const RPC_URL = process.env["RPC_URL"] || "";
+export const METHOD_VERIFY = process.env["METHOD_VERIFY"] || "2";
 
 // backfill
 export const BACKFILL_FIDS = process.env["FIDS"] || "";

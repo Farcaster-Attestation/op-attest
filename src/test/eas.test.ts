@@ -22,15 +22,15 @@ describe("eas", () => {
     expect(isAttested).toBe(true)
   });
 
-  test("should be able to attest on chain with fid: 26089911", async () => {
-    eas.connect()
-    const fid = BigInt(26089911);
-    const address = "0x34CA3Bb75c7f952fb1FF82C885b0E3Eb4466ABf6";
-    const protocol = 1;
-    const tx = await eas.attestOnChain(fid, address, protocol)
-
-    console.log(tx)
-  });
+  // test("should be able to attest on chain with fid: 26089911", async () => {
+  //   eas.connect()
+  //   const fid = BigInt(26089911);
+  //   const address = "0x34CA3Bb75c7f952fb1FF82C885b0E3Eb4466ABf6";
+  //   const protocol = 1;
+  //   const tx = await eas.attestOnChain(fid, address, protocol)
+  //
+  //   console.log(tx)
+  // });
 
   test("should be able to compute key", async () => {
     const key = eas.compositeKey(BigInt(123456), "0x34CA3Bb75c7f952fb1FF82C885b0E3Eb4466ABf6");

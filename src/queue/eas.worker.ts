@@ -1,7 +1,7 @@
 import { Worker, Job } from "bullmq";
 import { EasQueueData } from "./eas.queue.data";
 import { MessageData, MessageType } from "@farcaster/core";
-import { hexToBytes } from "viem";
+import { encodePacked, hexToBytes } from "viem";
 import { log } from "../log";
 import { Protocol } from "@farcaster/hub-nodejs";
 import { Eas } from "../eas";
@@ -43,15 +43,20 @@ export class EasWorker {
                     if (!msgData.verificationAddAddressBody) return;
                     if (msgData.verificationAddAddressBody.protocol === Protocol.ETHEREUM) {
                         if (msgData.verificationAddAddressBody.chainId === 0 || msgData.verificationAddAddressBody.chainId === 10) {
-                            const { address, protocol } = msgData.verificationAddAddressBody;
+                            const { address } = msgData.verificationAddAddressBody;
                             const addressHex = "0x" + Buffer.from(address).toString("hex");
                             const verified = await this.eas.verifyAddEthAddress(queueData);
                             log.debug(`Verify add address message status: ${verified}`);
                             if (verified) {
+                                const signature = encodePacked(
+                                    ["bytes32", "bytes32", "bytes"],
+                                    [queueData.signatureR, queueData.signatureS, queueData.messageDataHex]
+                                );
                                 await this.handleVerifyAddAddress(
                                     BigInt(msgData.fid),
                                     addressHex as `0x${string}`,
-                                    protocol,
+                                    queueData.publicKey,
+                                    signature,
                                 );
                             }
                         }
@@ -82,7 +87,7 @@ export class EasWorker {
     }
 
 
-    async handleVerifyAddAddress(fid: bigint, address: `0x${string}`, protocol: number) {
+    async handleVerifyAddAddress(fid: bigint, address: `0x${string}`, publicKey: `0x${string}`, signature: `0x${string}`) {
         const { isAttested } = await this.eas.checkFidVerification(
             fid,
             address,
@@ -96,7 +101,8 @@ export class EasWorker {
         const tx = await this.eas.attestOnChain(
             fid,
             address,
-            protocol,
+            publicKey,
+            signature,
         );
         log.info(`Attestation tx: ${tx}`);
     }

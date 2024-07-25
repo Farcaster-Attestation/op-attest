@@ -3,7 +3,7 @@ import { log } from "./log";
 import { Attestation, EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import {
     EAS_CONTRACT_ADDRESS,
-    FARCASTER_VERIFY_ADDRESS,
+    FARCASTER_VERIFY_ADDRESS, METHOD_VERIFY,
     MIN_CONFIRMATIONS,
     NETWORK,
     PRIVATE_KEY,
@@ -30,7 +30,7 @@ export class Eas {
 
     constructor() {
         this.eas = new EAS(EAS_CONTRACT_ADDRESS);
-        this.schemaEncoder = new SchemaEncoder("uint256 fid,address verifyAddress,uint8 protocol");
+        this.schemaEncoder = new SchemaEncoder("uint256 fid,address verifyAddress,bytes32 publicKey,uint256 method,bytes signature");
         this.client = createPublicClient({
             chain: optimismSepolia,
             transport: http(RPC_URL),
@@ -48,7 +48,7 @@ export class Eas {
         return this.eas.getAttestation(uid);
     }
 
-    async attestOnChain(fid: bigint, address: string, protocol: number) {
+    async attestOnChain(fid: bigint, address: string, publicKey: `0x${string}`, signature: `0x${string}`) {
         if (!this.eas) {
             throw new Error("EAS is not initialized");
         }
@@ -56,7 +56,9 @@ export class Eas {
         const encodedData = this.schemaEncoder.encodeData([
             { name: "fid", value: fid, type: "uint256" },
             { name: "verifyAddress", value: address, type: "address" },
-            { name: "protocol", value: protocol, type: "uint8" },
+            { name: "publicKey", value: publicKey, type: "bytes32" },
+            { name: "method", value: METHOD_VERIFY, type: "uint256" },
+            { name: "signature", value: signature, type: "bytes" },
         ]);
 
         const tx = await this.eas.attest({
