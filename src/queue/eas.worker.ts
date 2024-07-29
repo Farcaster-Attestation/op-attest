@@ -1,7 +1,7 @@
 import { Worker, Job } from "bullmq";
 import { EasQueueData } from "./eas.queue.data";
 import { MessageData, MessageType } from "@farcaster/core";
-import { encodePacked, hexToBytes } from "viem";
+import { encodeAbiParameters, hexToBytes, parseAbiParameters } from "viem";
 import { log } from "../log";
 import { Protocol } from "@farcaster/hub-nodejs";
 import { Eas } from "../eas";
@@ -48,10 +48,10 @@ export class EasWorker {
                             const verified = await this.eas.verifyAddEthAddress(queueData);
                             log.debug(`Verify add address message status: ${verified}`);
                             if (verified) {
-                                const signature = encodePacked(
-                                    ["bytes32", "bytes32", "bytes"],
+                                const signature = encodeAbiParameters(
+                                    parseAbiParameters('bytes32 signature_r, bytes32 signature_s, bytes message'),
                                     [queueData.signatureR, queueData.signatureS, queueData.messageDataHex]
-                                );
+                                )
                                 await this.handleVerifyAddAddress(
                                     BigInt(msgData.fid),
                                     addressHex as `0x${string}`,
@@ -82,7 +82,8 @@ export class EasWorker {
                     return;
             }
         } catch (e) {
-            log.error(`Error processing job: ${e}`);
+            log.error(`Error processing jobId: ${job.id} - error: ${e}`);
+            throw e;
         }
     }
 
@@ -97,6 +98,11 @@ export class EasWorker {
             log.error(`Farcaster was attested for fid: ${fid}`);
             return;
         }
+
+        log.debug(`Attesting farcaster for fid: ${fid}`);
+        log.debug(`Address: ${address}`);
+        log.debug(`Public key: ${publicKey}`);
+        log.debug(`Signature: ${signature}`);
 
         const tx = await this.eas.attestOnChain(
             fid,

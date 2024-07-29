@@ -4,36 +4,282 @@ export const resolverContractAbi = [
             {
                 "internalType": "contract IEAS",
                 "name": "eas",
-                "type": "address",
+                "type": "address"
             },
+            {
+                "internalType": "address",
+                "name": "admin",
+                "type": "address"
+            }
         ],
         "stateMutability": "nonpayable",
-        "type": "constructor",
+        "type": "constructor"
+    },
+    {
+        "inputs": [],
+        "name": "AccessControlBadConfirmation",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "neededRole",
+                "type": "bytes32"
+            }
+        ],
+        "name": "AccessControlUnauthorizedAccount",
+        "type": "error"
     },
     {
         "inputs": [],
         "name": "AccessDenied",
-        "type": "error",
+        "type": "error"
     },
     {
         "inputs": [],
         "name": "InsufficientValue",
-        "type": "error",
+        "type": "error"
     },
     {
         "inputs": [],
         "name": "InvalidEAS",
-        "type": "error",
+        "type": "error"
     },
     {
         "inputs": [],
         "name": "InvalidLength",
-        "type": "error",
+        "type": "error"
     },
     {
         "inputs": [],
         "name": "NotPayable",
-        "type": "error",
+        "type": "error"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "role",
+                "type": "bytes32"
+            },
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "previousAdminRole",
+                "type": "bytes32"
+            },
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "newAdminRole",
+                "type": "bytes32"
+            }
+        ],
+        "name": "RoleAdminChanged",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "role",
+                "type": "bytes32"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            }
+        ],
+        "name": "RoleGranted",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "role",
+                "type": "bytes32"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            }
+        ],
+        "name": "RoleRevoked",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "verifier",
+                "type": "address"
+            }
+        ],
+        "name": "SetPublicKeyVerifier",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "method",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "verifier",
+                "type": "address"
+            }
+        ],
+        "name": "SetVerifier",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "fid",
+                "type": "uint256"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "verifyAddress",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "verificationMethod",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "publicKey",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes",
+                "name": "signature",
+                "type": "bytes"
+            }
+        ],
+        "name": "VerificationAttested",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "fid",
+                "type": "uint256"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "verifyAddress",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "verificationMethod",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "publicKey",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes",
+                "name": "signature",
+                "type": "bytes"
+            }
+        ],
+        "name": "VerificationRevoked",
+        "type": "event"
+    },
+    {
+        "inputs": [],
+        "name": "DEFAULT_ADMIN_ROLE",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "OPERATOR_ROLE",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "SECURITY_ROLE",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
     },
     {
         "inputs": [
@@ -42,112 +288,167 @@ export const resolverContractAbi = [
                     {
                         "internalType": "bytes32",
                         "name": "uid",
-                        "type": "bytes32",
+                        "type": "bytes32"
                     },
                     {
                         "internalType": "bytes32",
                         "name": "schema",
-                        "type": "bytes32",
+                        "type": "bytes32"
                     },
                     {
                         "internalType": "uint64",
                         "name": "time",
-                        "type": "uint64",
+                        "type": "uint64"
                     },
                     {
                         "internalType": "uint64",
                         "name": "expirationTime",
-                        "type": "uint64",
+                        "type": "uint64"
                     },
                     {
                         "internalType": "uint64",
                         "name": "revocationTime",
-                        "type": "uint64",
+                        "type": "uint64"
                     },
                     {
                         "internalType": "bytes32",
                         "name": "refUID",
-                        "type": "bytes32",
+                        "type": "bytes32"
                     },
                     {
                         "internalType": "address",
                         "name": "recipient",
-                        "type": "address",
+                        "type": "address"
                     },
                     {
                         "internalType": "address",
                         "name": "attester",
-                        "type": "address",
+                        "type": "address"
                     },
                     {
                         "internalType": "bool",
                         "name": "revocable",
-                        "type": "bool",
+                        "type": "bool"
                     },
                     {
                         "internalType": "bytes",
                         "name": "data",
-                        "type": "bytes",
-                    },
+                        "type": "bytes"
+                    }
                 ],
                 "internalType": "struct Attestation",
                 "name": "attestation",
-                "type": "tuple",
-            },
+                "type": "tuple"
+            }
         ],
         "name": "attest",
         "outputs": [
             {
                 "internalType": "bool",
                 "name": "",
-                "type": "bool",
-            },
+                "type": "bool"
+            }
         ],
         "stateMutability": "payable",
-        "type": "function",
+        "type": "function"
     },
     {
         "inputs": [
             {
                 "internalType": "uint256",
                 "name": "_fid",
-                "type": "uint256",
+                "type": "uint256"
             },
             {
                 "internalType": "address",
                 "name": "_verifyAddr",
-                "type": "address",
-            },
+                "type": "address"
+            }
         ],
         "name": "computeKey",
         "outputs": [
             {
                 "internalType": "bytes32",
                 "name": "",
-                "type": "bytes32",
-            },
+                "type": "bytes32"
+            }
         ],
         "stateMutability": "pure",
-        "type": "function",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "method",
+                "type": "uint256"
+            }
+        ],
+        "name": "emergencyRemoveVerifier",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
         "inputs": [
             {
                 "internalType": "bytes32",
-                "name": "",
-                "type": "bytes32",
-            },
+                "name": "role",
+                "type": "bytes32"
+            }
         ],
-        "name": "fidAttested",
+        "name": "getRoleAdmin",
         "outputs": [
             {
                 "internalType": "bytes32",
                 "name": "",
-                "type": "bytes32",
-            },
+                "type": "bytes32"
+            }
         ],
         "stateMutability": "view",
-        "type": "function",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "role",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "grantRole",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "role",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "hasRole",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
     },
     {
         "inputs": [],
@@ -156,11 +457,11 @@ export const resolverContractAbi = [
             {
                 "internalType": "bool",
                 "name": "",
-                "type": "bool",
-            },
+                "type": "bool"
+            }
         ],
         "stateMutability": "pure",
-        "type": "function",
+        "type": "function"
     },
     {
         "inputs": [
@@ -169,74 +470,74 @@ export const resolverContractAbi = [
                     {
                         "internalType": "bytes32",
                         "name": "uid",
-                        "type": "bytes32",
+                        "type": "bytes32"
                     },
                     {
                         "internalType": "bytes32",
                         "name": "schema",
-                        "type": "bytes32",
+                        "type": "bytes32"
                     },
                     {
                         "internalType": "uint64",
                         "name": "time",
-                        "type": "uint64",
+                        "type": "uint64"
                     },
                     {
                         "internalType": "uint64",
                         "name": "expirationTime",
-                        "type": "uint64",
+                        "type": "uint64"
                     },
                     {
                         "internalType": "uint64",
                         "name": "revocationTime",
-                        "type": "uint64",
+                        "type": "uint64"
                     },
                     {
                         "internalType": "bytes32",
                         "name": "refUID",
-                        "type": "bytes32",
+                        "type": "bytes32"
                     },
                     {
                         "internalType": "address",
                         "name": "recipient",
-                        "type": "address",
+                        "type": "address"
                     },
                     {
                         "internalType": "address",
                         "name": "attester",
-                        "type": "address",
+                        "type": "address"
                     },
                     {
                         "internalType": "bool",
                         "name": "revocable",
-                        "type": "bool",
+                        "type": "bool"
                     },
                     {
                         "internalType": "bytes",
                         "name": "data",
-                        "type": "bytes",
-                    },
+                        "type": "bytes"
+                    }
                 ],
                 "internalType": "struct Attestation[]",
                 "name": "attestations",
-                "type": "tuple[]",
+                "type": "tuple[]"
             },
             {
                 "internalType": "uint256[]",
                 "name": "values",
-                "type": "uint256[]",
-            },
+                "type": "uint256[]"
+            }
         ],
         "name": "multiAttest",
         "outputs": [
             {
                 "internalType": "bool",
                 "name": "",
-                "type": "bool",
-            },
+                "type": "bool"
+            }
         ],
         "stateMutability": "payable",
-        "type": "function",
+        "type": "function"
     },
     {
         "inputs": [
@@ -245,74 +546,105 @@ export const resolverContractAbi = [
                     {
                         "internalType": "bytes32",
                         "name": "uid",
-                        "type": "bytes32",
+                        "type": "bytes32"
                     },
                     {
                         "internalType": "bytes32",
                         "name": "schema",
-                        "type": "bytes32",
+                        "type": "bytes32"
                     },
                     {
                         "internalType": "uint64",
                         "name": "time",
-                        "type": "uint64",
+                        "type": "uint64"
                     },
                     {
                         "internalType": "uint64",
                         "name": "expirationTime",
-                        "type": "uint64",
+                        "type": "uint64"
                     },
                     {
                         "internalType": "uint64",
                         "name": "revocationTime",
-                        "type": "uint64",
+                        "type": "uint64"
                     },
                     {
                         "internalType": "bytes32",
                         "name": "refUID",
-                        "type": "bytes32",
+                        "type": "bytes32"
                     },
                     {
                         "internalType": "address",
                         "name": "recipient",
-                        "type": "address",
+                        "type": "address"
                     },
                     {
                         "internalType": "address",
                         "name": "attester",
-                        "type": "address",
+                        "type": "address"
                     },
                     {
                         "internalType": "bool",
                         "name": "revocable",
-                        "type": "bool",
+                        "type": "bool"
                     },
                     {
                         "internalType": "bytes",
                         "name": "data",
-                        "type": "bytes",
-                    },
+                        "type": "bytes"
+                    }
                 ],
                 "internalType": "struct Attestation[]",
                 "name": "attestations",
-                "type": "tuple[]",
+                "type": "tuple[]"
             },
             {
                 "internalType": "uint256[]",
                 "name": "values",
-                "type": "uint256[]",
-            },
+                "type": "uint256[]"
+            }
         ],
         "name": "multiRevoke",
         "outputs": [
             {
                 "internalType": "bool",
                 "name": "",
-                "type": "bool",
-            },
+                "type": "bool"
+            }
         ],
         "stateMutability": "payable",
-        "type": "function",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "publicKeyVerifier",
+        "outputs": [
+            {
+                "internalType": "contract IFarcasterPublicKeyVerifier",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "role",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "callerConfirmation",
+                "type": "address"
+            }
+        ],
+        "name": "renounceRole",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
     },
     {
         "inputs": [
@@ -321,69 +653,253 @@ export const resolverContractAbi = [
                     {
                         "internalType": "bytes32",
                         "name": "uid",
-                        "type": "bytes32",
+                        "type": "bytes32"
                     },
                     {
                         "internalType": "bytes32",
                         "name": "schema",
-                        "type": "bytes32",
+                        "type": "bytes32"
                     },
                     {
                         "internalType": "uint64",
                         "name": "time",
-                        "type": "uint64",
+                        "type": "uint64"
                     },
                     {
                         "internalType": "uint64",
                         "name": "expirationTime",
-                        "type": "uint64",
+                        "type": "uint64"
                     },
                     {
                         "internalType": "uint64",
                         "name": "revocationTime",
-                        "type": "uint64",
+                        "type": "uint64"
                     },
                     {
                         "internalType": "bytes32",
                         "name": "refUID",
-                        "type": "bytes32",
+                        "type": "bytes32"
                     },
                     {
                         "internalType": "address",
                         "name": "recipient",
-                        "type": "address",
+                        "type": "address"
                     },
                     {
                         "internalType": "address",
                         "name": "attester",
-                        "type": "address",
+                        "type": "address"
                     },
                     {
                         "internalType": "bool",
                         "name": "revocable",
-                        "type": "bool",
+                        "type": "bool"
                     },
                     {
                         "internalType": "bytes",
                         "name": "data",
-                        "type": "bytes",
-                    },
+                        "type": "bytes"
+                    }
                 ],
                 "internalType": "struct Attestation",
                 "name": "attestation",
-                "type": "tuple",
-            },
+                "type": "tuple"
+            }
         ],
         "name": "revoke",
         "outputs": [
             {
                 "internalType": "bool",
                 "name": "",
-                "type": "bool",
-            },
+                "type": "bool"
+            }
         ],
         "stateMutability": "payable",
-        "type": "function",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "role",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "revokeRole",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IFarcasterPublicKeyVerifier",
+                "name": "verifier",
+                "type": "address"
+            }
+        ],
+        "name": "setPublicKeyVerifier",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "method",
+                "type": "uint256"
+            },
+            {
+                "internalType": "contract IFarcasterWalletVerifier",
+                "name": "verifier",
+                "type": "address"
+            }
+        ],
+        "name": "setVerifier",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes4",
+                "name": "interfaceId",
+                "type": "bytes4"
+            }
+        ],
+        "name": "supportsInterface",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "uid",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "verifiers",
+        "outputs": [
+            {
+                "internalType": "contract IFarcasterWalletVerifier",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "fid",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "verifyAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "publicKey",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint256",
+                "name": "method",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bytes",
+                "name": "signature",
+                "type": "bytes"
+            }
+        ],
+        "name": "verifyAdd",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "fid",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "verifyAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "publicKey",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint256",
+                "name": "method",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bytes",
+                "name": "signature",
+                "type": "bytes"
+            }
+        ],
+        "name": "verifyRemove",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
     },
     {
         "inputs": [],
@@ -392,14 +908,14 @@ export const resolverContractAbi = [
             {
                 "internalType": "string",
                 "name": "",
-                "type": "string",
-            },
+                "type": "string"
+            }
         ],
         "stateMutability": "view",
-        "type": "function",
+        "type": "function"
     },
     {
         "stateMutability": "payable",
-        "type": "receive",
-    },
+        "type": "receive"
+    }
 ] as const;

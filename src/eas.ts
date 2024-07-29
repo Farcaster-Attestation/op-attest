@@ -30,7 +30,7 @@ export class Eas {
 
     constructor() {
         this.eas = new EAS(EAS_CONTRACT_ADDRESS);
-        this.schemaEncoder = new SchemaEncoder("uint256 fid,address verifyAddress,bytes32 publicKey,uint256 method,bytes signature");
+        this.schemaEncoder = new SchemaEncoder("uint256 fid,bytes32 publicKey,uint256 verificationMethod,bytes memory signature");
         this.client = createPublicClient({
             chain: optimismSepolia,
             transport: http(RPC_URL),
@@ -55,9 +55,8 @@ export class Eas {
 
         const encodedData = this.schemaEncoder.encodeData([
             { name: "fid", value: fid, type: "uint256" },
-            { name: "verifyAddress", value: address, type: "address" },
             { name: "publicKey", value: publicKey, type: "bytes32" },
-            { name: "method", value: METHOD_VERIFY, type: "uint256" },
+            { name: "verificationMethod", value: METHOD_VERIFY, type: "uint256" },
             { name: "signature", value: signature, type: "bytes" },
         ]);
 
@@ -92,7 +91,7 @@ export class Eas {
         const uid = await this.client.readContract({
             address: RESOLVER_ADDRESS as `0x${string}`,
             abi: resolverContractAbi,
-            functionName: "fidAttested",
+            functionName: "uid",
             args: [key],
         });
         const isAttested = uid.toLowerCase() !== DEFAULT_BYTES_VALUE.toLowerCase();
