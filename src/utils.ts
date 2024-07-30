@@ -1,6 +1,7 @@
 import { fromFarcasterTime, Message } from "@farcaster/hub-nodejs";
-import { EasQueueData } from "./queue/eas.queue.data";
+import { QueueData } from "./queue/queue.data";
 import { MessageData } from "@farcaster/core";
+import { encodePacked, keccak256 } from "viem";
 
 export function farcasterTimeToDate(time: number): Date;
 export function farcasterTimeToDate(time: null): null;
@@ -13,7 +14,7 @@ export function farcasterTimeToDate(time: number | null | undefined): Date | nul
     return new Date(result.value);
 }
 
-export function transformQueueData(message: Message): EasQueueData {
+export function transformQueueData(message: Message): QueueData {
     if (!message.data) throw new Error("Message data is missing");
     const messageBytes = MessageData.encode(message.data).finish();
 
@@ -23,4 +24,9 @@ export function transformQueueData(message: Message): EasQueueData {
         signatureS: `0x${Buffer.from(message.signature).subarray(32).toString("hex")}` as `0x${string}`,
         publicKey: `0x${Buffer.from(message.signer).toString("hex")}` as `0x${string}`,
     };
+}
+
+export function compositeKey(fid: bigint, address: `0x${string}`) {
+    const encodeData = encodePacked(["uint256", "address"], [fid, address]);
+    return keccak256(encodeData);
 }

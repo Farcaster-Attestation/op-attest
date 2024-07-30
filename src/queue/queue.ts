@@ -8,7 +8,7 @@ export class QueueFactory {
     static getQueue(queueName: string, redis: Redis | Cluster) {
         return new Queue(queueName, {
             connection: redis,
-            defaultJobOptions: { attempts: 3, backoff: { delay: 1000, type: "exponential" } },
+            defaultJobOptions: { attempts: 5, backoff: { delay: 2000, type: "exponential" }, removeOnComplete: true },
         });
     }
 }

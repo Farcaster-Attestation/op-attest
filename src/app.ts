@@ -15,25 +15,30 @@ import {
 import { ok } from "neverthrow";
 import { AppDb, migrateToLatest } from "./db";
 import { farcasterTimeToDate, transformQueueData } from "./utils";
-import { HUB_ID, EAS_QUEUE_NAME, RECONCILE_JOB_NAME, COMPLETION_MARKER_JOB_NAME } from "./constant";
+import {
+    HUB_ID,
+    RECONCILE_JOB_NAME,
+    COMPLETION_MARKER_JOB_NAME,
+    SUBMIT_PROOF_QUEUE_NAME,
+} from "./constant";
 import { QueueFactory } from "./queue/queue";
 import { Queue } from "bullmq";
-import { EasWorker } from "./queue/eas.worker";
 import { MAX_FID } from "./env";
+import { SubmitProofWorker } from "./queue/submit.proof.worker";
 
 export class App implements MessageHandler {
     private readonly db: DB;
     private hubSubscriber: HubSubscriber;
     private streamConsumer: HubEventStreamConsumer;
     public redis: RedisClient;
-    public easQueue: Queue
+    public proofQueue: Queue
 
     constructor(db: DB, redis: RedisClient, hubSubscriber: HubSubscriber, streamConsumer: HubEventStreamConsumer) {
         this.db = db;
         this.redis = redis;
         this.hubSubscriber = hubSubscriber;
         this.streamConsumer = streamConsumer;
-        this.easQueue = QueueFactory.getQueue(EAS_QUEUE_NAME, redis.client);
+        this.proofQueue = QueueFactory.getQueue(SUBMIT_PROOF_QUEUE_NAME, redis.client);
     }
 
     static create(dbUrl: string,
@@ -75,13 +80,14 @@ export class App implements MessageHandler {
 
         log.info("Starting stream consumer");
         await this.streamConsumer.start(async (event) => {
+            log.debug(`Received event: ${JSON.stringify(event)}`);
             void this.processHubEvent(event);
             return ok({ skipped: false });
         });
 
-        log.info("Starting EAS worker");
-        const easWorker = new EasWorker().getWorker(this.redis.client);
-        await easWorker.run();
+        log.info("Starting submit proof worker");
+        const worker = new SubmitProofWorker().getWorker(this.redis.client);
+        await worker.run();
     }
 
     async handleMessageMerge(
@@ -102,7 +108,7 @@ export class App implements MessageHandler {
         const isVerify = isVerificationAddAddressMessage(message) || isVerificationRemoveMessage(message);
         if (isVerify && state === "created") {
             const queueData = transformQueueData(message);
-            await this.easQueue.add(EAS_QUEUE_NAME, queueData);
+            await this.proofQueue.add(SUBMIT_PROOF_QUEUE_NAME, queueData);
 
             await appDB
                 .insertInto("verifications")
@@ -119,7 +125,7 @@ export class App implements MessageHandler {
                 .execute();
         } else if (isVerify && state === "deleted") {
             const queueData = transformQueueData(message);
-            await this.easQueue.add(EAS_QUEUE_NAME, queueData);
+            await this.proofQueue.add(SUBMIT_PROOF_QUEUE_NAME, queueData);
 
             await appDB
                 .updateTable("verifications")

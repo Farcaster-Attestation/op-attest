@@ -1,13 +1,12 @@
-import { DEFAULT_BYTES_VALUE } from "./constant";
 import { log } from "./log";
 import { Attestation, EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import {
     EAS_CONTRACT_ADDRESS,
-    FARCASTER_VERIFY_ADDRESS, METHOD_VERIFY,
+    METHOD_VERIFY,
     MIN_CONFIRMATIONS,
     NETWORK,
     PRIVATE_KEY,
-    RESOLVER_ADDRESS, RPC_URL,
+    RPC_URL,
     SCHEMA_UID,
 } from "./env";
 import { ethers } from "ethers";
@@ -15,13 +14,9 @@ import {
     createPublicClient,
     http,
     PublicClient,
-    keccak256,
-    encodePacked,
+
 } from "viem";
 import { optimismSepolia } from "viem/chains";
-import { resolverContractAbi } from "./contracts/resolver/wagmi.abi";
-import { FarcasterVerifyAbi } from "./contracts/farcaster-verify/farcaster.verify.abi";
-import { EasQueueData } from "./queue/eas.queue.data";
 
 export class Eas {
     public eas: EAS;
@@ -81,59 +76,5 @@ export class Eas {
         await transaction.wait();
 
         return transaction.receipt?.hash;
-    }
-
-    // Check if the FID is attested on chain
-    // Returns true if the FID is attested on chain
-    // Returns false if the FID is not attested on chain
-    async checkFidVerification(fid: bigint, address: string) {
-        const key = this.compositeKey(fid, address as `0x${string}`);
-        const uid = await this.client.readContract({
-            address: RESOLVER_ADDRESS as `0x${string}`,
-            abi: resolverContractAbi,
-            functionName: "uid",
-            args: [key],
-        });
-        const isAttested = uid.toLowerCase() !== DEFAULT_BYTES_VALUE.toLowerCase();
-        return { isAttested, uid };
-    }
-
-    async verifyAddEthAddress(queueData: EasQueueData) {
-        const isVerified = await this.client.readContract({
-            address: FARCASTER_VERIFY_ADDRESS as `0x${string}`,
-            abi: FarcasterVerifyAbi.abi,
-            functionName: "verifyVerificationAddEthAddressBool",
-            args: [
-                queueData.publicKey,
-                queueData.signatureR,
-                queueData.signatureS,
-                queueData.messageDataHex,
-            ],
-        });
-
-        log.info(`VerificationAddEthAddressBodyVerified: ${JSON.stringify(isVerified)}`);
-        return isVerified;
-    }
-
-    async verifyRemoveAddress(queueData: EasQueueData) {
-        const isVerified =  await this.client.readContract({
-            address: FARCASTER_VERIFY_ADDRESS as `0x${string}`,
-            abi: FarcasterVerifyAbi.abi,
-            functionName: "verifyVerificationRemoveBool",
-            args: [
-                queueData.publicKey,
-                queueData.signatureR,
-                queueData.signatureS,
-                queueData.messageDataHex,
-            ],
-        });
-
-        log.info(`VerificationRemoveBodyVerified: ${JSON.stringify(isVerified)}`);
-        return isVerified;
-    }
-
-    compositeKey(fid: bigint, address: `0x${string}`) {
-        const encodeData = encodePacked(["uint256", "address"], [fid, address]);
-        return keccak256(encodeData);
     }
 }

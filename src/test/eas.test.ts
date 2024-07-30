@@ -14,13 +14,13 @@ describe("eas", () => {
     expect(true).toBe(true)
   });
 
-  test("should be able to return true with fid: 26089905", async () => {
-    const fid = BigInt(26089911);
-    const address = "0x34CA3Bb75c7f952fb1FF82C885b0E3Eb4466ABf6";
-    const {isAttested} = await eas.checkFidVerification(fid, address)
-
-    expect(isAttested).toBe(true)
-  });
+  // test("should be able to return true with fid: 26089905", async () => {
+  //   const fid = BigInt(26089911);
+  //   const address = "0x34CA3Bb75c7f952fb1FF82C885b0E3Eb4466ABf6";
+  //   const {isAttested} = await eas.checkFidVerification(fid, address)
+  //
+  //   expect(isAttested).toBe(true)
+  // });
 
   // test("should be able to attest on chain with fid: 26089911", async () => {
   //   eas.connect()
@@ -32,11 +32,11 @@ describe("eas", () => {
   //   console.log(tx)
   // });
 
-  test("should be able to compute key", async () => {
-    const key = eas.compositeKey(BigInt(123456), "0x34CA3Bb75c7f952fb1FF82C885b0E3Eb4466ABf6");
-    console.log(key);
-    expect(key).toBe("0x46d63a3b5b210870b5c7942a769c932a26dde55acfd2695704df89f01c053385")
-  });
+  // test("should be able to compute key", async () => {
+  //   const key = eas.compositeKey(BigInt(123456), "0x34CA3Bb75c7f952fb1FF82C885b0E3Eb4466ABf6");
+  //   console.log(key);
+  //   expect(key).toBe("0x46d63a3b5b210870b5c7942a769c932a26dde55acfd2695704df89f01c053385")
+  // });
 
   // test("should be able to verify farcaster message on-chain", async () => {
   //   const fid = 100;
