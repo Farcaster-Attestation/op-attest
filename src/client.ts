@@ -1,4 +1,4 @@
-import { createPublicClient, createWalletClient, http, PublicClient, WalletClient } from "viem";
+import { createPublicClient, createWalletClient, http, nonceManager, PublicClient, WalletClient } from "viem";
 import { optimismSepolia } from "viem/chains";
 import {
     FARCASTER_OPTIMISTIC_VERIFY_ADDRESS,
@@ -111,7 +111,7 @@ export class Client {
                 publicKey,
                 signature,
             ],
-            account: privateKeyToAccount(PRIVATE_KEY as `0x${string}`),
+            account: privateKeyToAccount(PRIVATE_KEY as `0x${string}`, { nonceManager }),
         });
 
         const txHash = await this.walletClient.writeContract(request);
