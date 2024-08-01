@@ -1,5 +1,5 @@
 import { log } from "../log";
-import { App } from "../app";
+import { App } from "../indexer/app";
 import { HUB_HOST, HUB_SSL, POSTGRES_URL, REDIS_URL, SHARD_INDEX, TOTAL_SHARDS } from "../env";
 
 export class StartCMD {

@@ -1,28 +1,30 @@
 import { Worker, Job } from "bullmq";
-import { QueueData } from "./queue.data";
-import { MessageData, MessageType } from "@farcaster/core";
-import { encodeAbiParameters, hexToBytes, parseAbiParameters } from "viem";
+import { EASQueueData } from "./queue.data";
+import { MessageType } from "@farcaster/core";
 import { log } from "../log";
-import { Protocol } from "@farcaster/hub-nodejs";
-import { Eas } from "../eas";
+import { Eas } from "../attested/eas";
 import Redis, { Cluster } from "ioredis";
 import { EAS_QUEUE_NAME } from "../constant";
 import { Client } from "../client";
+import { AppDb } from "../indexer/models";
+import { Fid } from "@farcaster/shuttle";
 
 export class EasWorker {
     public eas: Eas;
     public client: Client;
+    public db: AppDb;
 
-    constructor() {
+    constructor(db : AppDb) {
         this.eas = new Eas();
         this.eas.connect();
         this.client = Client.getInstance();
+        this.db = db;
     }
 
     getWorker(redis: Redis | Cluster, concurrency = 1) {
         return new Worker(
             EAS_QUEUE_NAME,
-            async (job: Job<QueueData>) => {
+            async (job: Job<EASQueueData>) => {
                 await this.processEASQueue(job);
             },
             {
@@ -34,52 +36,25 @@ export class EasWorker {
         );
     }
 
-    async processEASQueue(job: Job<QueueData>) {
+    async processEASQueue(job: Job<EASQueueData>) {
         const queueData = job.data;
+        log.info(`Processing jobId: ${job.id} - message: ${JSON.stringify(queueData)}`);
         try {
-            const msgData = MessageData.decode(hexToBytes(queueData.messageDataHex));
-            log.debug(`Processing job: ${job.id} - data: ${JSON.stringify(msgData)}`);
-            switch (msgData.type) {
+            switch (queueData.messageType) {
                 case MessageType.VERIFICATION_ADD_ETH_ADDRESS:
-                    if (!msgData.verificationAddAddressBody) return;
-                    if (msgData.verificationAddAddressBody.protocol === Protocol.ETHEREUM) {
-                        if (msgData.verificationAddAddressBody.chainId === 0 || msgData.verificationAddAddressBody.chainId === 10) {
-                            const { address } = msgData.verificationAddAddressBody;
-                            const addressHex = "0x" + Buffer.from(address).toString("hex");
-                            const verified = await this.client.verifyAddEthAddress(queueData);
-                            log.debug(`Verify add address message status: ${verified}`);
-                            if (verified) {
-                                const signature = encodeAbiParameters(
-                                    parseAbiParameters('bytes32 signature_r, bytes32 signature_s, bytes message'),
-                                    [queueData.signatureR, queueData.signatureS, queueData.messageDataHex]
-                                )
-                                await this.handleVerifyAddAddress(
-                                    BigInt(msgData.fid),
-                                    addressHex as `0x${string}`,
-                                    queueData.publicKey,
-                                    signature,
-                                );
-                            }
-                        }
-                    }
+                    await this.handleVerifyAddAddress(
+                        queueData.fid,
+                        queueData.verifyAddress,
+                        queueData.publicKey,
+                        queueData.signature,
+                        queueData.verifyMethod,
+                        );
                     break;
                 case MessageType.VERIFICATION_REMOVE:
-                    if (!msgData.verificationRemoveBody) return;
-                    if (msgData.verificationRemoveBody.protocol === Protocol.ETHEREUM) {
-                        const { address } = msgData.verificationRemoveBody;
-                        const addressHex = "0x" + Buffer.from(address).toString("hex");
-                        const verified = await this.client.verifyRemoveAddress(queueData);
-                        log.debug(`Verify remove address message status: ${verified}`);
-                        if (verified) {
-                            await this.handleVerifyRemoveAddress(
-                                BigInt(msgData.fid),
-                                addressHex as `0x${string}`,
-                            );
-                        }
-                    }
+                    await this.handleVerifyRemoveAddress(queueData.fid, queueData.verifyAddress);
                     break;
                 default:
-                    log.error(`Unknown message type: ${msgData.type}`);
+                    log.error(`Unknown message type: ${queueData.messageType}`);
                     return;
             }
         } catch (e) {
@@ -89,7 +64,13 @@ export class EasWorker {
     }
 
 
-    async handleVerifyAddAddress(fid: bigint, address: `0x${string}`, publicKey: `0x${string}`, signature: `0x${string}`) {
+    async handleVerifyAddAddress(
+        fid: bigint,
+        address: `0x${string}`,
+        publicKey: `0x${string}`,
+        signature: `0x${string}`,
+        methodVerify: number,
+        ) {
         const isAttested  = await this.client.checkFidVerification(
             fid,
             address,
@@ -100,18 +81,20 @@ export class EasWorker {
             return;
         }
 
-        log.debug(`Attesting farcaster for fid: ${fid}`);
-        log.debug(`Address: ${address}`);
-        log.debug(`Public key: ${publicKey}`);
-        log.debug(`Signature: ${signature}`);
-
         const tx = await this.eas.attestOnChain(
             fid,
             address,
             publicKey,
             signature,
+            methodVerify,
         );
         log.info(`Attestation tx: ${tx}`);
+
+        await this.db.updateTable("verifyProofs")
+            .where("fid", "=", fid as unknown as Fid)
+            .where("verifyAddress", "=", address)
+            .set({ attested: true })
+            .execute();
     }
 
     async handleVerifyRemoveAddress(fid: bigint, address: `0x${string}`) {
@@ -129,5 +112,11 @@ export class EasWorker {
 
         const tx = await this.eas.revokeAttestation(uid);
         log.info(`Revoke attestation tx: ${tx}`);
+
+        await this.db.updateTable("verifyProofs")
+            .where("fid", "=", fid as unknown as Fid)
+            .where("verifyAddress", "=", address)
+            .set({ attested: false })
+            .execute();
     }
 }

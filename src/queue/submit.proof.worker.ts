@@ -7,12 +7,17 @@ import { log } from "../log";
 import { Protocol } from "@farcaster/hub-nodejs";
 import { Client } from "../client";
 import { QueueData } from "./queue.data";
+import { DB, Fid } from "@farcaster/shuttle";
+import { AppDb } from "../indexer/models";
+import { METHOD_VERIFY } from "../env";
 
 export class SubmitProofWorker {
+    private readonly db: AppDb;
     public client: Client;
 
-    constructor() {
+    constructor(db: DB) {
         this.client = Client.getInstance();
+        this.db = db as unknown as AppDb;
     }
 
     getWorker(redis: Redis | Cluster, concurrency = 1) {
@@ -99,7 +104,7 @@ export class SubmitProofWorker {
         publicKey: `0x${string}`,
         signature: `0x${string}`,
     ) {
-        const isAttested  = await this.client.checkFidVerification(
+        const isAttested = await this.client.checkFidVerification(
             fid,
             address,
         );
@@ -110,8 +115,21 @@ export class SubmitProofWorker {
         }
 
         // handle submit proof to contract
-        await this.client.submitVerifyProof(messageType, fid, address, publicKey, signature);
+        const txHash = await this.client.submitVerifyProof(messageType, fid, address, publicKey, signature);
 
+        // insert into db
+        await this.db.insertInto("verifyProofs")
+            .values({
+                fid: fid as unknown as Fid,
+                messageType,
+                verifyMethod: METHOD_VERIFY,
+                verifyAddress: address,
+                publicKey,
+                txHash,
+                signature,
+                attested: false,
+            })
+            .execute();
     }
 
     async handleVerifyRemoveAddress(
@@ -121,7 +139,7 @@ export class SubmitProofWorker {
         publicKey: `0x${string}`,
         signature: `0x${string}`,
     ) {
-        const isAttested  = await this.client.checkFidVerification(
+        const isAttested = await this.client.checkFidVerification(
             fid,
             address,
         );
@@ -132,6 +150,20 @@ export class SubmitProofWorker {
         }
 
         // handle submit proof to contract
-        await this.client.submitVerifyProof(messageType, fid, address, publicKey, signature);
+        const txHash = await this.client.submitVerifyProof(messageType, fid, address, publicKey, signature);
+
+        // insert into db
+        await this.db.insertInto("verifyProofs")
+            .values({
+                fid: fid as unknown as Fid,
+                messageType,
+                verifyMethod: METHOD_VERIFY,
+                verifyAddress: address,
+                publicKey,
+                txHash,
+                signature,
+                attested: false,
+            })
+            .execute();
     }
 }

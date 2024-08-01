@@ -1,14 +1,14 @@
-import { FileMigrationProvider, Generated, Kysely, Migrator } from "kysely";
+import { FileMigrationProvider, Kysely, Migrator } from "kysely";
 import { Logger } from "./log";
 import { err, ok, Result } from "neverthrow";
 import path from "path";
 import { promises as fs } from "fs";
 import { fileURLToPath } from "node:url";
 import { HubTables } from "@farcaster/hub-shuttle";
-import { DB, Fid } from "@farcaster/shuttle";
+import { DB } from "@farcaster/shuttle";
 
-const createMigrator = async (db: Kysely<HubTables>) => {
-    const currentDir = path.dirname(fileURLToPath(import.meta.url));
+const createMigrator = async (db: Kysely<HubTables>, appName: string) => {
+    const currentDir = path.join(path.dirname(fileURLToPath(import.meta.url)), appName);
 
     return new Migrator({
         db,
@@ -20,8 +20,8 @@ const createMigrator = async (db: Kysely<HubTables>) => {
     });
 };
 
-export const migrateToLatest = async (db: DB, log: Logger): Promise<Result<void, unknown>> => {
-    const migrator = await createMigrator(db as unknown as Kysely<HubTables>);
+export const migrateToLatest = async (db: DB, log: Logger, appName: string): Promise<Result<void, unknown>> => {
+    const migrator = await createMigrator(db as unknown as Kysely<HubTables>, appName);
 
     const { error, results } = await migrator.migrateToLatest();
 
@@ -42,25 +42,3 @@ export const migrateToLatest = async (db: DB, log: Logger): Promise<Result<void,
     log.info("Migrations up to date");
     return ok(undefined);
 };
-
-export type VerificationRow = {
-    id: Generated<string>;
-    createdAt: Generated<Date>;
-    updatedAt: Generated<Date>;
-    deletedAt: Date | null;
-    timestamp: Date;
-    fid: Fid;
-    hash: Uint8Array;
-    address: Uint8Array;
-    blockHash: Uint8Array | null;
-    verificationType: number;
-    chainId: number;
-    protocol: number;
-
-};
-
-export interface Tables extends HubTables {
-    verifications: VerificationRow;
-}
-
-export type AppDb = Kysely<Tables>;

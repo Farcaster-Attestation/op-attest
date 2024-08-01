@@ -1,41 +1,28 @@
-import { log } from "./log";
+import { log } from "../log";
 import { Attestation, EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import {
-    EAS_CONTRACT_ADDRESS,
+    EAS_CONTRACT_ADDRESS, EAS_PRIVATE_KEY,
     METHOD_VERIFY,
     MIN_CONFIRMATIONS,
     NETWORK,
-    PRIVATE_KEY,
     RPC_URL,
     SCHEMA_UID,
-} from "./env";
+} from "../env";
 import { ethers } from "ethers";
-import {
-    createPublicClient,
-    http,
-    PublicClient,
-
-} from "viem";
-import { optimismSepolia } from "viem/chains";
 
 export class Eas {
     public eas: EAS;
     public schemaEncoder: SchemaEncoder;
-    public client: PublicClient;
 
     constructor() {
         this.eas = new EAS(EAS_CONTRACT_ADDRESS);
-        this.schemaEncoder = new SchemaEncoder("uint256 fid,bytes32 publicKey,uint256 verificationMethod,bytes memory signature");
-        this.client = createPublicClient({
-            chain: optimismSepolia,
-            transport: http(RPC_URL),
-        }) as PublicClient;
+        this.schemaEncoder = new SchemaEncoder("uint256 fid,bytes32 publicKey,uint256 verificationMethod,bytes memory signature")
     }
 
     connect() {
         // const provider = ethers.getDefaultProvider(NETWORK);
         const provider = new ethers.JsonRpcProvider(RPC_URL, NETWORK);
-        const signer = new ethers.Wallet(PRIVATE_KEY ?? "", provider);
+        const signer = new ethers.Wallet(EAS_PRIVATE_KEY ?? "", provider);
         this.eas.connect(signer);
     }
 
@@ -43,7 +30,13 @@ export class Eas {
         return this.eas.getAttestation(uid);
     }
 
-    async attestOnChain(fid: bigint, address: string, publicKey: `0x${string}`, signature: `0x${string}`) {
+    async attestOnChain(
+        fid: bigint,
+        address: string,
+        publicKey: `0x${string}`,
+        signature: `0x${string}`,
+        methodVerify: number = METHOD_VERIFY
+        ) {
         if (!this.eas) {
             throw new Error("EAS is not initialized");
         }
@@ -51,7 +44,7 @@ export class Eas {
         const encodedData = this.schemaEncoder.encodeData([
             { name: "fid", value: fid, type: "uint256" },
             { name: "publicKey", value: publicKey, type: "bytes32" },
-            { name: "verificationMethod", value: METHOD_VERIFY, type: "uint256" },
+            { name: "verificationMethod", value: methodVerify, type: "uint256" },
             { name: "signature", value: signature, type: "bytes" },
         ]);
 

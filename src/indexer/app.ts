@@ -6,25 +6,28 @@ import {
     HubSubscriber, MessageHandler, MessageState,
     RedisClient, StoreMessageOperation,
 } from "@farcaster/shuttle";
-import { log } from "./log";
+import { log } from "../log";
 import {
     bytesToHexString,
     HubEvent, isVerificationAddAddressMessage, isVerificationRemoveMessage,
     Message,
 } from "@farcaster/hub-nodejs";
 import { ok } from "neverthrow";
-import { AppDb, migrateToLatest } from "./db";
-import { farcasterTimeToDate, transformQueueData } from "./utils";
+import { migrateToLatest } from "../db";
+import { farcasterTimeToDate, transformQueueData } from "../utils";
 import {
     HUB_ID,
     RECONCILE_JOB_NAME,
     COMPLETION_MARKER_JOB_NAME,
     SUBMIT_PROOF_QUEUE_NAME,
-} from "./constant";
-import { QueueFactory } from "./queue/queue";
+} from "../constant";
+import { QueueFactory } from "../queue/queue";
 import { Queue } from "bullmq";
-import { MAX_FID } from "./env";
-import { SubmitProofWorker } from "./queue/submit.proof.worker";
+import { FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, MAX_FID } from "../env";
+import { SubmitProofWorker } from "../queue/submit.proof.worker";
+import { AppDb } from "./models";
+import { IndexEvent } from "./index.event";
+import { Client } from "../client";
 
 export class App implements MessageHandler {
     private readonly db: DB;
@@ -85,8 +88,12 @@ export class App implements MessageHandler {
             return ok({ skipped: false });
         });
 
+        // Start listen events from contract
+        const indexEvent = new IndexEvent(FARCASTER_OPTIMISTIC_VERIFY_ADDRESS,Client.getInstance(), this.db as unknown as AppDb);
+        await indexEvent.handleInterval()
+
         log.info("Starting submit proof worker");
-        const worker = new SubmitProofWorker().getWorker(this.redis.client);
+        const worker = new SubmitProofWorker(this.db).getWorker(this.redis.client);
         await worker.run();
     }
 
@@ -143,7 +150,7 @@ export class App implements MessageHandler {
     }
 
     async ensureMigrations() {
-        const result = await migrateToLatest(this.db, log);
+        const result = await migrateToLatest(this.db, log, "indexer");
         if (result.isErr()) {
             log.error("Failed to migrate database", result.error);
             throw result.error;

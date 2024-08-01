@@ -3,7 +3,7 @@ import { Worker, Job } from "bullmq";
 import { log } from "../log";
 import { HubEventProcessor, MessageReconciliation } from "@farcaster/shuttle";
 import { bytesToHexString } from "@farcaster/hub-nodejs";
-import { App } from "../app";
+import { App } from "../indexer/app";
 
 export class BackfillWorker {
     public app: App;

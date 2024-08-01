@@ -1,6 +1,6 @@
 import { HUB_HOST, HUB_SSL, POSTGRES_URL, REDIS_URL, SHARD_INDEX, TOTAL_SHARDS } from "../env";
 import { log } from "../log";
-import { App } from "../app";
+import { App } from "../indexer/app";
 import { BackfillWorker } from "../queue/backfill.worker";
 
 export class WorkerCMD {

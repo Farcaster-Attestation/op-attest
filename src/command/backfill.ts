@@ -1,6 +1,6 @@
 import { log } from "../log";
 import { BACKFILL_FIDS, HUB_HOST, HUB_SSL, POSTGRES_URL, REDIS_URL, SHARD_INDEX, TOTAL_SHARDS } from "../env";
-import { App } from "../app";
+import { App } from "../indexer/app";
 import { QueueFactory } from "../queue/queue";
 import { BACKFILL_QUEUE_NAME } from "../constant";
 import { BackfillWorker } from "../queue/backfill.worker";

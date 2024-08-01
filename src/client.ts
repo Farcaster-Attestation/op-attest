@@ -3,7 +3,7 @@ import { optimismSepolia } from "viem/chains";
 import {
     FARCASTER_OPTIMISTIC_VERIFY_ADDRESS,
     FARCASTER_VERIFY_ADDRESS,
-    PRIVATE_KEY,
+    RELAYER_PRIVATE_KEY,
     RESOLVER_ADDRESS,
     RPC_URL,
 } from "./env";
@@ -16,11 +16,11 @@ import { FarcasterOptimisticVerifyAbi } from "./abi/farcaster.optimistic.verify.
 
 export class Client {
     static instance: Client;
-    private client: PublicClient;
+    public publicClient: PublicClient;
     private walletClient: WalletClient;
 
     private constructor() {
-        this.client = createPublicClient({
+        this.publicClient = createPublicClient({
             chain: optimismSepolia,
             transport: http(RPC_URL),
         }) as PublicClient;
@@ -42,7 +42,7 @@ export class Client {
     // Returns true if the FID is attested on chain
     // Returns false if the FID is not attested on chain
     async checkFidVerification(fid: bigint, address: `0x${string}`) {
-        return await this.client.readContract({
+        return await this.publicClient.readContract({
             address: RESOLVER_ADDRESS as `0x${string}`,
             abi: resolverAbi,
             functionName: "isVerified",
@@ -51,7 +51,7 @@ export class Client {
     }
 
     async getAttestationUid(fid: bigint, address: `0x${string}`) {
-        return await this.client.readContract({
+        return await this.publicClient.readContract({
             address: RESOLVER_ADDRESS as `0x${string}`,
             abi: resolverAbi,
             functionName: "getAttestationUid",
@@ -60,7 +60,7 @@ export class Client {
     }
 
     async verifyAddEthAddress(queueData: QueueData) {
-        const isVerified = await this.client.readContract({
+        const isVerified = await this.publicClient.readContract({
             address: FARCASTER_VERIFY_ADDRESS as `0x${string}`,
             abi: FarcasterVerifyAbi,
             functionName: "verifyVerificationAddEthAddressBool",
@@ -77,7 +77,7 @@ export class Client {
     }
 
     async verifyRemoveAddress(queueData: QueueData) {
-        const isVerified = await this.client.readContract({
+        const isVerified = await this.publicClient.readContract({
             address: FARCASTER_VERIFY_ADDRESS as `0x${string}`,
             abi: FarcasterVerifyAbi,
             functionName: "verifyVerificationRemoveBool",
@@ -100,7 +100,7 @@ export class Client {
         publicKey: `0x${string}`,
         signature: `0x${string}`,
     ) {
-        const { request } = await this.client.simulateContract({
+        const { request } = await this.publicClient.simulateContract({
             address: FARCASTER_OPTIMISTIC_VERIFY_ADDRESS as `0x${string}`,
             abi: FarcasterOptimisticVerifyAbi,
             functionName: "submitVerification",
@@ -111,11 +111,16 @@ export class Client {
                 publicKey,
                 signature,
             ],
-            account: privateKeyToAccount(PRIVATE_KEY as `0x${string}`, { nonceManager }),
+            account: privateKeyToAccount(RELAYER_PRIVATE_KEY as `0x${string}`, { nonceManager }),
         });
 
         const txHash = await this.walletClient.writeContract(request);
 
         log.info(`Submitted proof to contract: ${txHash}`);
+        return txHash;
+    }
+
+    async getClient() {
+        return this.publicClient;
     }
 }
