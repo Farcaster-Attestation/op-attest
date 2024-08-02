@@ -47,13 +47,18 @@ export class SubmitProofWorker {
                         if (msgData.verificationAddAddressBody.chainId === 0 || msgData.verificationAddAddressBody.chainId === 10) {
                             const { address } = msgData.verificationAddAddressBody;
                             const addressHex = "0x" + Buffer.from(address).toString("hex");
-                            const verified = await this.client.verifyAddEthAddress(queueData);
+                            const signature = encodeAbiParameters(
+                                parseAbiParameters("bytes32 signature_r, bytes32 signature_s, bytes message"),
+                                [queueData.signatureR, queueData.signatureS, queueData.messageDataHex],
+                            );
+                            const verified = await this.client.verifyAddEthAddress(
+                                BigInt(msgData.fid),
+                                addressHex as `0x${string}`,
+                                queueData.publicKey,
+                                signature,
+                            );
                             log.debug(`Verify add address message status: ${verified}`);
                             if (verified) {
-                                const signature = encodeAbiParameters(
-                                    parseAbiParameters("bytes32 signature_r, bytes32 signature_s, bytes message"),
-                                    [queueData.signatureR, queueData.signatureS, queueData.messageDataHex],
-                                );
                                 await this.handleVerifyAddAddress(
                                     msgData.type,
                                     BigInt(msgData.fid),
@@ -70,13 +75,19 @@ export class SubmitProofWorker {
                     if (msgData.verificationRemoveBody.protocol === Protocol.ETHEREUM) {
                         const { address } = msgData.verificationRemoveBody;
                         const addressHex = "0x" + Buffer.from(address).toString("hex");
-                        const verified = await this.client.verifyRemoveAddress(queueData);
+                        const signature = encodeAbiParameters(
+                            parseAbiParameters("bytes32 signature_r, bytes32 signature_s, bytes message"),
+                            [queueData.signatureR, queueData.signatureS, queueData.messageDataHex],
+                        );
+                        const verified = await this.client.verifyRemoveAddress(
+                            BigInt(msgData.fid),
+                            addressHex as `0x${string}`,
+                            queueData.publicKey,
+                            signature,
+                        );
                         log.debug(`Verify remove address message status: ${verified}`);
                         if (verified) {
-                            const signature = encodeAbiParameters(
-                                parseAbiParameters("bytes32 signature_r, bytes32 signature_s, bytes message"),
-                                [queueData.signatureR, queueData.signatureS, queueData.messageDataHex],
-                            );
+
                             await this.handleVerifyRemoveAddress(
                                 msgData.type,
                                 BigInt(msgData.fid),

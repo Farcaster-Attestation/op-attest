@@ -2,15 +2,12 @@ import { createPublicClient, createWalletClient, http, nonceManager, PublicClien
 import { optimismSepolia } from "viem/chains";
 import {
     FARCASTER_OPTIMISTIC_VERIFY_ADDRESS,
-    FARCASTER_VERIFY_ADDRESS,
     RELAYER_PRIVATE_KEY,
     RESOLVER_ADDRESS,
     RPC_URL,
 } from "./env";
 import { log } from "./log";
 import { resolverAbi } from "./abi/resolver.abi";
-import { QueueData } from "./queue/queue.data";
-import { FarcasterVerifyAbi } from "./abi/farcaster.verify.abi";
 import { privateKeyToAccount } from "viem/accounts";
 import { FarcasterOptimisticVerifyAbi } from "./abi/farcaster.optimistic.verify.abi";
 
@@ -59,16 +56,21 @@ export class Client {
         });
     }
 
-    async verifyAddEthAddress(queueData: QueueData) {
-        const isVerified = await this.publicClient.readContract({
-            address: FARCASTER_VERIFY_ADDRESS as `0x${string}`,
-            abi: FarcasterVerifyAbi,
-            functionName: "verifyVerificationAddEthAddressBool",
+    async verifyAddEthAddress(
+        fid: bigint,
+        verifyAddress: `0x${string}`,
+        publicKey: `0x${string}`,
+        signature: `0x${string}`,
+    ) {
+        const isVerified = await this.publicClient.simulateContract({
+            address: FARCASTER_OPTIMISTIC_VERIFY_ADDRESS as `0x${string}`,
+            abi: FarcasterOptimisticVerifyAbi,
+            functionName: "challengeAdd",
             args: [
-                queueData.publicKey,
-                queueData.signatureR,
-                queueData.signatureS,
-                queueData.messageDataHex,
+                fid,
+                verifyAddress,
+                publicKey,
+                signature,
             ],
         });
 
@@ -76,16 +78,21 @@ export class Client {
         return isVerified;
     }
 
-    async verifyRemoveAddress(queueData: QueueData) {
+    async verifyRemoveAddress(
+        fid: bigint,
+        verifyAddress: `0x${string}`,
+        publicKey: `0x${string}`,
+        signature: `0x${string}`,
+    ) {
         const isVerified = await this.publicClient.readContract({
-            address: FARCASTER_VERIFY_ADDRESS as `0x${string}`,
-            abi: FarcasterVerifyAbi,
-            functionName: "verifyVerificationRemoveBool",
+            address: FARCASTER_OPTIMISTIC_VERIFY_ADDRESS as `0x${string}`,
+            abi: FarcasterOptimisticVerifyAbi,
+            functionName: "verifyRemove",
             args: [
-                queueData.publicKey,
-                queueData.signatureR,
-                queueData.signatureS,
-                queueData.messageDataHex,
+                fid,
+                verifyAddress,
+                publicKey,
+                signature,
             ],
         });
 
@@ -118,9 +125,5 @@ export class Client {
 
         log.info(`Submitted proof to contract: ${txHash}`);
         return txHash;
-    }
-
-    async getClient() {
-        return this.publicClient;
     }
 }
