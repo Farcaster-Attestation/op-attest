@@ -10,8 +10,7 @@ export const SHARD_INDEX = parseInt(process.env["SHARD_NUM"] || "0");
 // default to the EAS contract on Sepolia
 export const EAS_CONTRACT_ADDRESS = process.env["EAS_CONTRACT_ADDRESS"] || "0x4200000000000000000000000000000000000021";
 export const NETWORK = process.env["NETWORK"] || "optimism-sepolia";
-export const RELAYER_PRIVATE_KEY = process.env["RELAYER_PRIVATE_KEY"] || "";
-export const EAS_PRIVATE_KEY = process.env["EAS_PRIVATE_KEY"] || "";
+export const PRIVATE_KEY = process.env["PRIVATE_KEY"] || "";
 export const SCHEMA_UID = process.env["SCHEMA_UID"] || "0x6c782a69f03e8b1839379ff7068027526d492cb4f38e4cfa5e708c669765234b";
 export const RESOLVER_ADDRESS = process.env["RESOLVER_ADDRESS"] || "0xba8BfD8306A6a588302A6B931fa53fb6eb8E3292";
 export const MIN_CONFIRMATIONS = parseInt(process.env["MIN_CONFIRMATIONS"] || "1");

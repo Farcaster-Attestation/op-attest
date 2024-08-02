@@ -31,7 +31,7 @@ import { Client } from "../client";
 
 export class App implements MessageHandler {
     private readonly db: DB;
-    private hubSubscriber: HubSubscriber;
+    private readonly hubSubscriber: HubSubscriber;
     private streamConsumer: HubEventStreamConsumer;
     public redis: RedisClient;
     public proofQueue: Queue

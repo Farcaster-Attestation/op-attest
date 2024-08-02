@@ -51,7 +51,7 @@ export class SubmitProofWorker {
                                 parseAbiParameters("bytes32 signature_r, bytes32 signature_s, bytes message"),
                                 [queueData.signatureR, queueData.signatureS, queueData.messageDataHex],
                             );
-                            const verified = await this.client.verifyAddEthAddress(
+                            const verified = await this.client.simulateChallengeAdd(
                                 BigInt(msgData.fid),
                                 addressHex as `0x${string}`,
                                 queueData.publicKey,
@@ -79,7 +79,7 @@ export class SubmitProofWorker {
                             parseAbiParameters("bytes32 signature_r, bytes32 signature_s, bytes message"),
                             [queueData.signatureR, queueData.signatureS, queueData.messageDataHex],
                         );
-                        const verified = await this.client.verifyRemoveAddress(
+                        const verified = await this.client.simulateChallengeRemove(
                             BigInt(msgData.fid),
                             addressHex as `0x${string}`,
                             queueData.publicKey,

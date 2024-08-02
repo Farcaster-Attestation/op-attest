@@ -77,7 +77,12 @@ export class EasWorker {
         );
 
         if (isAttested) {
-            log.error(`Farcaster was attested for fid: ${fid}`);
+            log.warn(`Farcaster was attested for fid: ${fid}`);
+            await this.db.updateTable("verifyProofs")
+                .where("fid", "=", fid as unknown as Fid)
+                .where("verifyAddress", "=", address)
+                .set({ attested: true })
+                .execute();
             return;
         }
 

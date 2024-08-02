@@ -53,7 +53,7 @@ export class AppAttested {
                 return;
             }
 
-            log.debug(`Found ${proofs.length} proofs to attest`);
+            log.info(`Found ${proofs.length} proofs to attest`);
 
             const queuesData = proofs.map((proof) => {
                 return {

@@ -1,8 +1,7 @@
 import { createPublicClient, createWalletClient, http, nonceManager, PublicClient, WalletClient } from "viem";
 import { optimismSepolia } from "viem/chains";
 import {
-    FARCASTER_OPTIMISTIC_VERIFY_ADDRESS,
-    RELAYER_PRIVATE_KEY,
+    FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, PRIVATE_KEY,
     RESOLVER_ADDRESS,
     RPC_URL,
 } from "./env";
@@ -12,7 +11,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { FarcasterOptimisticVerifyAbi } from "./abi/farcaster.optimistic.verify.abi";
 
 export class Client {
-    static instance: Client;
+    private static instance: Client;
     public publicClient: PublicClient;
     private walletClient: WalletClient;
 
@@ -56,48 +55,58 @@ export class Client {
         });
     }
 
-    async verifyAddEthAddress(
+    async simulateChallengeAdd(
         fid: bigint,
         verifyAddress: `0x${string}`,
         publicKey: `0x${string}`,
         signature: `0x${string}`,
     ) {
-        const isVerified = await this.publicClient.simulateContract({
-            address: FARCASTER_OPTIMISTIC_VERIFY_ADDRESS as `0x${string}`,
-            abi: FarcasterOptimisticVerifyAbi,
-            functionName: "challengeAdd",
-            args: [
-                fid,
-                verifyAddress,
-                publicKey,
-                signature,
-            ],
-        });
+        try {
+            const { request } = await this.publicClient.simulateContract({
+                address: FARCASTER_OPTIMISTIC_VERIFY_ADDRESS,
+                abi: FarcasterOptimisticVerifyAbi,
+                functionName: "challengeAdd",
+                args: [
+                    fid,
+                    verifyAddress,
+                    publicKey,
+                    signature,
+                ],
+            });
 
-        log.info(`VerificationAddEthAddressBodyVerified: ${JSON.stringify(isVerified)}`);
-        return isVerified;
+            log.info(`simulateChallengeAdd: ${JSON.stringify(request)}`);
+            return true;
+        } catch (error) {
+            log.error(error);
+            return false;
+        }
     }
 
-    async verifyRemoveAddress(
+    async simulateChallengeRemove(
         fid: bigint,
         verifyAddress: `0x${string}`,
         publicKey: `0x${string}`,
         signature: `0x${string}`,
     ) {
-        const isVerified = await this.publicClient.readContract({
-            address: FARCASTER_OPTIMISTIC_VERIFY_ADDRESS as `0x${string}`,
-            abi: FarcasterOptimisticVerifyAbi,
-            functionName: "verifyRemove",
-            args: [
-                fid,
-                verifyAddress,
-                publicKey,
-                signature,
-            ],
-        });
+        try {
+            const { request } = await this.publicClient.simulateContract({
+                address: FARCASTER_OPTIMISTIC_VERIFY_ADDRESS,
+                abi: FarcasterOptimisticVerifyAbi,
+                functionName: "challengeRemove",
+                args: [
+                    fid,
+                    verifyAddress,
+                    publicKey,
+                    signature,
+                ],
+            });
 
-        log.info(`VerificationRemoveBodyVerified: ${JSON.stringify(isVerified)}`);
-        return isVerified;
+            log.info(`simulateChallengeRemove: ${JSON.stringify(request)}`);
+            return true;
+        } catch (error) {
+            log.error(error);
+            return false;
+        }
     }
 
     async submitVerifyProof(
@@ -108,7 +117,7 @@ export class Client {
         signature: `0x${string}`,
     ) {
         const { request } = await this.publicClient.simulateContract({
-            address: FARCASTER_OPTIMISTIC_VERIFY_ADDRESS as `0x${string}`,
+            address: FARCASTER_OPTIMISTIC_VERIFY_ADDRESS,
             abi: FarcasterOptimisticVerifyAbi,
             functionName: "submitVerification",
             args: [
@@ -118,7 +127,57 @@ export class Client {
                 publicKey,
                 signature,
             ],
-            account: privateKeyToAccount(RELAYER_PRIVATE_KEY as `0x${string}`, { nonceManager }),
+            account: privateKeyToAccount(PRIVATE_KEY as `0x${string}`, { nonceManager }),
+        });
+
+        const txHash = await this.walletClient.writeContract(request);
+
+        log.info(`Submitted proof to contract: ${txHash}`);
+        return txHash;
+    }
+
+    async challengeAdd(
+        fid: bigint,
+        verifyAddress: `0x${string}`,
+        publicKey: `0x${string}`,
+        signature: `0x${string}`,
+    ) {
+        const { request } = await this.publicClient.simulateContract({
+            address: FARCASTER_OPTIMISTIC_VERIFY_ADDRESS,
+            abi: FarcasterOptimisticVerifyAbi,
+            functionName: "challengeAdd",
+            args: [
+                fid,
+                verifyAddress,
+                publicKey,
+                signature,
+            ],
+            account: privateKeyToAccount(PRIVATE_KEY as `0x${string}`, { nonceManager }),
+        });
+
+        const txHash = await this.walletClient.writeContract(request);
+
+        log.info(`Submitted proof to contract: ${txHash}`);
+        return txHash;
+    }
+
+    async challengeRemove(
+        fid: bigint,
+        verifyAddress: `0x${string}`,
+        publicKey: `0x${string}`,
+        signature: `0x${string}`,
+    ) {
+        const { request } = await this.publicClient.simulateContract({
+            address: FARCASTER_OPTIMISTIC_VERIFY_ADDRESS,
+            abi: FarcasterOptimisticVerifyAbi,
+            functionName: "challengeRemove",
+            args: [
+                fid,
+                verifyAddress,
+                publicKey,
+                signature,
+            ],
+            account: privateKeyToAccount(PRIVATE_KEY as `0x${string}`, { nonceManager }),
         });
 
         const txHash = await this.walletClient.writeContract(request);

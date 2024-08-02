@@ -1,10 +1,10 @@
 import { log } from "../log";
 import { Attestation, EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import {
-    EAS_CONTRACT_ADDRESS, EAS_PRIVATE_KEY,
+    EAS_CONTRACT_ADDRESS,
     METHOD_VERIFY,
     MIN_CONFIRMATIONS,
-    NETWORK,
+    NETWORK, PRIVATE_KEY,
     RPC_URL,
     SCHEMA_UID,
 } from "../env";
@@ -22,7 +22,7 @@ export class Eas {
     connect() {
         // const provider = ethers.getDefaultProvider(NETWORK);
         const provider = new ethers.JsonRpcProvider(RPC_URL, NETWORK);
-        const signer = new ethers.Wallet(EAS_PRIVATE_KEY ?? "", provider);
+        const signer = new ethers.Wallet(PRIVATE_KEY ?? "", provider);
         this.eas.connect(signer);
     }
 
