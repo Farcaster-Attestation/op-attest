@@ -70,6 +70,6 @@ export class AppAttested {
             });
 
             await this.easQueue.addBulk(queuesData);
-        }, 1000); // * 60 * 60
+        }, 1000 * 60 * 60); // * 60 * 60
     }
 }
