@@ -1,7 +1,7 @@
 import { createPublicClient, createWalletClient, http, nonceManager, PublicClient, WalletClient } from "viem";
-import { optimismSepolia } from "viem/chains";
+import { base, optimism, optimismSepolia } from "viem/chains";
 import {
-    FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, PRIVATE_KEY,
+    FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, NETWORK, PRIVATE_KEY,
     RESOLVER_ADDRESS,
     RPC_URL,
 } from "./env";
@@ -16,13 +16,24 @@ export class Client {
     private walletClient: WalletClient;
 
     private constructor() {
+        let chain;
+        switch (NETWORK) {
+            case "optimism":
+                chain = optimism;
+                break;
+            case "base":
+                chain = base;
+                break;
+            default:
+                chain = optimismSepolia;
+        }
         this.publicClient = createPublicClient({
-            chain: optimismSepolia,
+            chain: chain,
             transport: http(RPC_URL),
         }) as PublicClient;
 
         this.walletClient = createWalletClient({
-            chain: optimismSepolia,
+            chain: chain,
             transport: http(RPC_URL),
         }) as WalletClient;
     }
@@ -74,7 +85,7 @@ export class Client {
                 ],
             });
 
-            log.info(`simulateChallengeAdd: ${JSON.stringify(request)}`);
+            log.info(`simulateChallengeAdd: ${request}`);
             return true;
         } catch (error) {
             log.error(error);

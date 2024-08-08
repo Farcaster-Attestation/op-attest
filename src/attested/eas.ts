@@ -20,7 +20,6 @@ export class Eas {
     }
 
     connect() {
-        // const provider = ethers.getDefaultProvider(NETWORK);
         const provider = new ethers.JsonRpcProvider(RPC_URL, NETWORK);
         const signer = new ethers.Wallet(PRIVATE_KEY ?? "", provider);
         this.eas.connect(signer);
