@@ -30,36 +30,38 @@ export class ChallengeWorker {
             log.info(`Processing job: ${job.id} - data: ${JSON.stringify(queueData)}`);
             switch (queueData.messageType) {
                 case MessageType.VERIFICATION_ADD_ETH_ADDRESS: {
-                    const verified = await this.client.simulateChallengeAdd(
-                        BigInt(queueData.fid),
-                        queueData.verifyAddress,
-                        queueData.publicKey,
-                        queueData.signature,
+                    const verified = await this.client.verifyAdd(
+                        BigInt(queueData.fid) as bigint,
+                        queueData.verifyAddress as `0x${string}`,
+                        queueData.publicKey as `0x${string}`,
+                        queueData.signature as `0x${string}`,
                     );
+                    log.info(`Verification add address: ${verified}`);
 
                     if (!verified) {
                         // call the challengeAdd function
                         await this.client.challengeAdd(
-                            BigInt(queueData.fid),
-                            queueData.verifyAddress,
-                            queueData.publicKey,
-                            queueData.signature,
+                            BigInt(queueData.fid) as bigint,
+                            queueData.verifyAddress as `0x${string}`,
+                            queueData.publicKey as `0x${string}`,
+                            queueData.signature as `0x${string}`,
                         );
                     }
                     break;
                 }
                 case MessageType.VERIFICATION_REMOVE: {
-                    const verified = await this.client.simulateChallengeRemove(
-                        BigInt(queueData.fid),
+                    const verified = await this.client.verifyRemove(
+                        BigInt(queueData.fid).valueOf(),
                         queueData.verifyAddress,
                         queueData.publicKey,
                         queueData.signature,
                     );
+                    log.info(`Verification remove: ${verified}`);
 
                     if (!verified) {
                         // call the challengeRemove function
                         await this.client.challengeRemove(
-                            BigInt(queueData.fid),
+                            BigInt(queueData.fid).valueOf(),
                             queueData.verifyAddress,
                             queueData.publicKey,
                             queueData.signature,
@@ -72,7 +74,8 @@ export class ChallengeWorker {
             }
 
         } catch (error) {
-            log.error(error);
+            log.error(`processChallenge error: ${error}`);
+            throw error;
         }
     }
 }

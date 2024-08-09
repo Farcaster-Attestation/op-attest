@@ -51,13 +51,21 @@ export class SubmitProofWorker {
                                 parseAbiParameters("bytes32 signature_r, bytes32 signature_s, bytes message"),
                                 [queueData.signatureR, queueData.signatureS, queueData.messageDataHex],
                             );
-                            const verified = await this.client.simulateChallengeAdd(
+
+                            // check data able to verify on chain or not before submit proof
+                            const verified = await this.client.verifyAdd(
                                 BigInt(msgData.fid),
                                 addressHex as `0x${string}`,
                                 queueData.publicKey,
                                 signature,
                             );
-                            log.debug(`Verify add address message status: ${verified}`);
+
+                            log.info(`Verify add address message status: 
+                            ${verified} 
+                            - address: ${addressHex} 
+                            - fid: ${msgData.fid} 
+                            - publicKey: ${queueData.publicKey} 
+                            - signature: ${signature}`);
                             if (verified) {
                                 await this.handleVerifyAddAddress(
                                     msgData.type,
@@ -66,6 +74,20 @@ export class SubmitProofWorker {
                                     queueData.publicKey,
                                     signature,
                                 );
+                            } else {
+                                // insert into db
+                                await this.db.insertInto("verifyProofs")
+                                    .values({
+                                        fid: msgData.fid,
+                                        messageType: msgData.type,
+                                        verifyMethod: METHOD_VERIFY,
+                                        verifyAddress: addressHex as `0x${string}`,
+                                        publicKey: queueData.publicKey,
+                                        txHash: "",
+                                        signature,
+                                        status: "FAILED",
+                                    })
+                                    .execute();
                             }
                         }
                     }
@@ -79,15 +101,22 @@ export class SubmitProofWorker {
                             parseAbiParameters("bytes32 signature_r, bytes32 signature_s, bytes message"),
                             [queueData.signatureR, queueData.signatureS, queueData.messageDataHex],
                         );
-                        const verified = await this.client.simulateChallengeRemove(
+
+                        // check data able to verify on chain or not before submit proof
+                        const verified = await this.client.verifyRemove(
                             BigInt(msgData.fid),
                             addressHex as `0x${string}`,
                             queueData.publicKey,
                             signature,
                         );
-                        log.debug(`Verify remove address message status: ${verified}`);
-                        if (verified) {
 
+                        log.info(`Verify remove address message status: 
+                        ${verified}
+                        - address: ${addressHex}
+                        - fid: ${msgData.fid}
+                        - publicKey: ${queueData.publicKey}
+                        - signature: ${signature}`);
+                        if (verified) {
                             await this.handleVerifyRemoveAddress(
                                 msgData.type,
                                 BigInt(msgData.fid),
@@ -95,6 +124,20 @@ export class SubmitProofWorker {
                                 queueData.publicKey,
                                 signature,
                             );
+                        } else {
+                            // insert into db
+                            await this.db.insertInto("verifyProofs")
+                                .values({
+                                    fid: msgData.fid,
+                                    messageType: msgData.type,
+                                    verifyMethod: METHOD_VERIFY,
+                                    verifyAddress: addressHex as `0x${string}`,
+                                    publicKey: queueData.publicKey,
+                                    txHash: "",
+                                    signature,
+                                    status: "FAILED",
+                                })
+                                .execute();
                         }
                     }
                     break;
@@ -138,7 +181,7 @@ export class SubmitProofWorker {
                 publicKey,
                 txHash,
                 signature,
-                attested: false,
+                status: "PENDING",
             })
             .execute();
     }
@@ -159,9 +202,15 @@ export class SubmitProofWorker {
             log.error(`Farcaster was not attested for fid: ${fid}`);
             return;
         }
-
+        let txHash = "", status;
+        try {
+            txHash = await this.client.submitVerifyProof(messageType, fid, address, publicKey, signature);
+            status = "PENDING";
+        } catch (error) {
+            log.error(`Error submitting proof to contract: ${error}`);
+            status = "FAILED";
+        }
         // handle submit proof to contract
-        const txHash = await this.client.submitVerifyProof(messageType, fid, address, publicKey, signature);
 
         // insert into db
         await this.db.insertInto("verifyProofs")
@@ -173,7 +222,7 @@ export class SubmitProofWorker {
                 publicKey,
                 txHash,
                 signature,
-                attested: false,
+                status: status,
             })
             .execute();
     }

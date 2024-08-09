@@ -31,7 +31,7 @@ export type VerifyProofRow = {
     txHash: string;
     signature: string;
     blockNumber: bigint | null;
-    attested: boolean;
+    status: string;
 }
 
 export type SyncHeadRow = {

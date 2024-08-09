@@ -52,6 +52,7 @@ export class IndexEvent {
         const persistJobs = submitEvents.map((event) => {
             return this.db.updateTable("verifyProofs").where("txHash", "=", event.txHash).set({
                 blockNumber: event.blockNumber,
+                status: 'SUBMITTED',
             }).execute();
         });
 
@@ -65,9 +66,9 @@ export class IndexEvent {
         const lastHead = await this.getLastHead();
         const toBlock = lastHead.number;
 
-        let fromBlock = toBlock - maxBehindHead;
+        let fromBlock: bigint = toBlock - maxBehindHead;
         if (syncedHead && syncedHead.head >= fromBlock) {
-            fromBlock = syncedHead.head + 1n;
+            fromBlock = BigInt(syncedHead.head) + 1n;
         }
 
         if (toBlock <= fromBlock) {
@@ -91,7 +92,7 @@ export class IndexEvent {
             try {
                 const res = await this.index(5n);
                 if (res) {
-                    if (res.fromBlock > res.prevSyncedBlock + 1n) {
+                    if (res.fromBlock > BigInt(res.prevSyncedBlock) + 1n) {
                         log.warn(
                             `Skipped blocks from ${res.prevSyncedBlock + 1n} to ${res.fromBlock - 1n}`,
                         );

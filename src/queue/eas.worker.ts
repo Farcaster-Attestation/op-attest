@@ -43,7 +43,7 @@ export class EasWorker {
             switch (queueData.messageType) {
                 case MessageType.VERIFICATION_ADD_ETH_ADDRESS:
                     await this.handleVerifyAddAddress(
-                        queueData.fid,
+                        BigInt(queueData.fid),
                         queueData.verifyAddress,
                         queueData.publicKey,
                         queueData.signature,
@@ -51,7 +51,7 @@ export class EasWorker {
                         );
                     break;
                 case MessageType.VERIFICATION_REMOVE:
-                    await this.handleVerifyRemoveAddress(queueData.fid, queueData.verifyAddress);
+                    await this.handleVerifyRemoveAddress(BigInt(queueData.fid), queueData.verifyAddress);
                     break;
                 default:
                     log.error(`Unknown message type: ${queueData.messageType}`);
@@ -81,7 +81,7 @@ export class EasWorker {
             await this.db.updateTable("verifyProofs")
                 .where("fid", "=", fid as unknown as Fid)
                 .where("verifyAddress", "=", address)
-                .set({ attested: true })
+                .set({ status: "ATTESTED" })
                 .execute();
             return;
         }
@@ -98,7 +98,7 @@ export class EasWorker {
         await this.db.updateTable("verifyProofs")
             .where("fid", "=", fid as unknown as Fid)
             .where("verifyAddress", "=", address)
-            .set({ attested: true })
+            .set({ status: "ATTESTED" })
             .execute();
     }
 
@@ -121,7 +121,7 @@ export class EasWorker {
         await this.db.updateTable("verifyProofs")
             .where("fid", "=", fid as unknown as Fid)
             .where("verifyAddress", "=", address)
-            .set({ attested: false })
+            .set({ status: "ATTESTED" })
             .execute();
     }
 }

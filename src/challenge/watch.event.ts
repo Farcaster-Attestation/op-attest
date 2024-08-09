@@ -1,5 +1,5 @@
 import { Client } from "../client";
-import { FARCASTER_OPTIMISTIC_VERIFY_ADDRESS } from "../env";
+import { FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, METHOD_VERIFY } from "../env";
 import { FarcasterOptimisticVerifyAbi } from "../abi/farcaster.optimistic.verify.abi";
 import { RedisClient } from "@farcaster/shuttle";
 import { Queue } from "bullmq";
@@ -13,7 +13,7 @@ export class WatchEvent {
     constructor(
         private readonly client: Client,
         private readonly redis: RedisClient,
-        ) {
+    ) {
         this.challengeQueue = QueueFactory.getQueue(CHALLENGE_QUEUE_NAME, this.redis.client);
     }
 
@@ -29,11 +29,11 @@ export class WatchEvent {
                         data: {
                             publicKey: log.args.publicKey,
                             messageType: log.args.messageType,
-                            fid: log.args.fid,
+                            fid: log.args.fid ? log.args.fid.toString() : '0',
                             verifyAddress: log.args.verifyAddress,
                             signature: log.args.signature,
-                            verifyMethod: 2,
-                        }
+                            verifyMethod: METHOD_VERIFY,
+                        },
                     };
                 });
 
@@ -41,7 +41,7 @@ export class WatchEvent {
             },
             onError: (error) => {
                 log.error(error);
-            }
+            },
         });
     }
 }

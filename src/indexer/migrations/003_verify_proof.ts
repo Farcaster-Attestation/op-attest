@@ -60,9 +60,9 @@ export const up = async (db: Kysely<never>) => {
         .addColumn("verifyMethod", sql`smallint`, (col) => col.notNull())
         .addColumn("verifyAddress", "text", (col) => col.notNull())
         .addColumn("publicKey", "text", (col) => col.notNull())
-        .addColumn("txHash", "text", (col) => col.notNull())
+        .addColumn("txHash", "text")
         .addColumn("signature", "text", (col) => col.notNull())
-        .addColumn("attested", "boolean", (col) => col.notNull().defaultTo(false))
+        .addColumn("status", "text", (col) => col.notNull())
         .addUniqueConstraint("proof_hash_unique", ["txHash"])
         .$call((qb) =>
             qb.addPrimaryKeyConstraint("proof_pkey", ["id"]).addUniqueConstraint("proof_hash_unique", ["txHash"]),

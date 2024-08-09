@@ -1,4 +1,12 @@
-import { createPublicClient, createWalletClient, http, nonceManager, PublicClient, WalletClient } from "viem";
+import {
+    BaseError, ContractFunctionRevertedError,
+    createPublicClient,
+    createWalletClient,
+    http,
+    nonceManager,
+    PublicClient,
+    WalletClient,
+} from "viem";
 import { base, optimism, optimismSepolia } from "viem/chains";
 import {
     FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, NETWORK, PRIVATE_KEY,
@@ -66,7 +74,9 @@ export class Client {
         });
     }
 
-    async simulateChallengeAdd(
+    // verifyAdd returns true if data able to verify (ChallengeFailed revert case)
+    // otherwise returns false
+    async verifyAdd(
         fid: bigint,
         verifyAddress: `0x${string}`,
         publicKey: `0x${string}`,
@@ -86,14 +96,25 @@ export class Client {
             });
 
             log.info(`simulateChallengeAdd: ${request}`);
-            return true;
-        } catch (error) {
-            log.error(error);
+            return false;
+        } catch (err) {
+            if (err instanceof BaseError) {
+                const revertError = err.walk(err => err instanceof ContractFunctionRevertedError)
+                if (revertError instanceof ContractFunctionRevertedError) {
+                    const errorName = revertError.data?.errorName ?? ''
+                    if (errorName === 'ChallengeFailed') {
+                        return true;
+                    }
+                }
+            }
+            log.error(err);
             return false;
         }
     }
 
-    async simulateChallengeRemove(
+    // verifyRemove returns true if data able to verify (ChallengeFailed revert case)
+    // otherwise returns false
+    async verifyRemove(
         fid: bigint,
         verifyAddress: `0x${string}`,
         publicKey: `0x${string}`,
@@ -112,10 +133,19 @@ export class Client {
                 ],
             });
 
-            log.info(`simulateChallengeRemove: ${JSON.stringify(request)}`);
-            return true;
-        } catch (error) {
-            log.error(error);
+            log.info(`simulateChallengeRemove: ${request}`);
+            return false;
+        } catch (err) {
+            if (err instanceof BaseError) {
+                const revertError = err.walk(err => err instanceof ContractFunctionRevertedError)
+                if (revertError instanceof ContractFunctionRevertedError) {
+                    const errorName = revertError.data?.errorName ?? ''
+                    if (errorName === 'ChallengeFailed') {
+                        return true;
+                    }
+                }
+            }
+            log.error(`simulateChallengeRemove error: ${err}`);
             return false;
         }
     }

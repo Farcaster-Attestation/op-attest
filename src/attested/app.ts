@@ -46,7 +46,7 @@ export class AppAttested {
             const proofs = await this.db.selectFrom("verifyProofs")
                 .selectAll()
                 .where("blockNumber", "<=", BigInt(challengeBlock))
-                .where("attested" , "=", false)
+                .where("status" , "=", "SUBMITTED")
                 .limit(1800)
                 .execute();
             if (!proofs || proofs.length === 0) {

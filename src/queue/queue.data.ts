@@ -7,7 +7,7 @@ export interface QueueData {
 export interface EASQueueData {
     publicKey: `0x${string}`;
     messageType: number;
-    fid: bigint;
+    fid: string;
     verifyAddress: `0x${string}`;
     signature: `0x${string}`;
     verifyMethod: number;
