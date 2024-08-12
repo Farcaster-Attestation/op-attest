@@ -14,7 +14,7 @@ export const PRIVATE_KEY = process.env["PRIVATE_KEY"] || "";
 export const SCHEMA_UID = process.env["SCHEMA_UID"] || "0x6c782a69f03e8b1839379ff7068027526d492cb4f38e4cfa5e708c669765234b";
 export const RESOLVER_ADDRESS = process.env["RESOLVER_ADDRESS"] || "0xba8BfD8306A6a588302A6B931fa53fb6eb8E3292";
 export const MIN_CONFIRMATIONS = parseInt(process.env["MIN_CONFIRMATIONS"] || "1");
-export const FARCASTER_OPTIMISTIC_VERIFY_ADDRESS = (process.env["FARCASTER_OPTIMISTIC_VERIFY_ADDRESS"] || "0x8D45d7161b7340B297A007Cc7EB6F90350B7BE90") as `0x${string}`;
+export const FARCASTER_OPTIMISTIC_VERIFY_ADDRESS = (process.env["FARCASTER_OPTIMISTIC_VERIFY_ADDRESS"] || "0x984A31984679Ac53120E5afC0CaB635DD4955960") as `0x${string}`;
 export const RPC_URL = process.env["RPC_URL"] || "";
 export const METHOD_VERIFY = parseInt(process.env["METHOD_VERIFY"] || "2");
 

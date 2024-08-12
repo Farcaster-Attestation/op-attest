@@ -1,5 +1,4 @@
 import {
-    BaseError, ContractFunctionRevertedError,
     createPublicClient,
     createWalletClient,
     http,
@@ -74,7 +73,7 @@ export class Client {
         });
     }
 
-    // verifyAdd returns true if data able to verify (ChallengeFailed revert case)
+    // verifyAdd returns true if signature is invalid
     // otherwise returns false
     async verifyAdd(
         fid: bigint,
@@ -83,10 +82,10 @@ export class Client {
         signature: `0x${string}`,
     ) {
         try {
-            const { request } = await this.publicClient.simulateContract({
+            const result  = await this.publicClient.readContract({
                 address: FARCASTER_OPTIMISTIC_VERIFY_ADDRESS,
                 abi: FarcasterOptimisticVerifyAbi,
-                functionName: "challengeAdd",
+                functionName: "tryChallengeAdd",
                 args: [
                     fid,
                     verifyAddress,
@@ -95,24 +94,15 @@ export class Client {
                 ],
             });
 
-            log.info(`simulateChallengeAdd: ${request}`);
-            return false;
+            log.info(`tryChallengeAdd: ${result}`);
+            return result;
         } catch (err) {
-            if (err instanceof BaseError) {
-                const revertError = err.walk(err => err instanceof ContractFunctionRevertedError)
-                if (revertError instanceof ContractFunctionRevertedError) {
-                    const errorName = revertError.data?.errorName ?? ''
-                    if (errorName === 'ChallengeFailed') {
-                        return true;
-                    }
-                }
-            }
-            log.error(err);
+            log.error(`tryChallengeAdd error: ${err}`);
             return false;
         }
     }
 
-    // verifyRemove returns true if data able to verify (ChallengeFailed revert case)
+    // verifyRemove returns true if signature is invalid
     // otherwise returns false
     async verifyRemove(
         fid: bigint,
@@ -121,10 +111,10 @@ export class Client {
         signature: `0x${string}`,
     ) {
         try {
-            const { request } = await this.publicClient.simulateContract({
+            const result = await this.publicClient.readContract({
                 address: FARCASTER_OPTIMISTIC_VERIFY_ADDRESS,
                 abi: FarcasterOptimisticVerifyAbi,
-                functionName: "challengeRemove",
+                functionName: "tryChallengeRemove",
                 args: [
                     fid,
                     verifyAddress,
@@ -133,19 +123,10 @@ export class Client {
                 ],
             });
 
-            log.info(`simulateChallengeRemove: ${request}`);
-            return false;
+            log.info(`tryChallengeRemove: ${result}`);
+            return result;
         } catch (err) {
-            if (err instanceof BaseError) {
-                const revertError = err.walk(err => err instanceof ContractFunctionRevertedError)
-                if (revertError instanceof ContractFunctionRevertedError) {
-                    const errorName = revertError.data?.errorName ?? ''
-                    if (errorName === 'ChallengeFailed') {
-                        return true;
-                    }
-                }
-            }
-            log.error(`simulateChallengeRemove error: ${err}`);
+            log.error(`tryChallengeRemove error: ${err}`);
             return false;
         }
     }

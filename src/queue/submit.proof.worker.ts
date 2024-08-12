@@ -66,7 +66,7 @@ export class SubmitProofWorker {
                             - fid: ${msgData.fid} 
                             - publicKey: ${queueData.publicKey} 
                             - signature: ${signature}`);
-                            if (verified) {
+                            if (!verified) {
                                 await this.handleVerifyAddAddress(
                                     msgData.type,
                                     BigInt(msgData.fid),
@@ -116,7 +116,7 @@ export class SubmitProofWorker {
                         - fid: ${msgData.fid}
                         - publicKey: ${queueData.publicKey}
                         - signature: ${signature}`);
-                        if (verified) {
+                        if (!verified) {
                             await this.handleVerifyRemoveAddress(
                                 msgData.type,
                                 BigInt(msgData.fid),

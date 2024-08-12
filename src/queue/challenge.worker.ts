@@ -38,7 +38,7 @@ export class ChallengeWorker {
                     );
                     log.info(`Verification add address: ${verified}`);
 
-                    if (!verified) {
+                    if (verified) {
                         // call the challengeAdd function
                         await this.client.challengeAdd(
                             BigInt(queueData.fid) as bigint,
@@ -58,7 +58,7 @@ export class ChallengeWorker {
                     );
                     log.info(`Verification remove: ${verified}`);
 
-                    if (!verified) {
+                    if (verified) {
                         // call the challengeRemove function
                         await this.client.challengeRemove(
                             BigInt(queueData.fid).valueOf(),
