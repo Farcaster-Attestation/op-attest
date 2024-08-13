@@ -169,21 +169,7 @@ export class SubmitProofWorker {
         }
 
         // handle submit proof to contract
-        const txHash = await this.client.submitVerifyProof(messageType, fid, address, publicKey, signature);
-
-        // insert into db
-        await this.db.insertInto("verifyProofs")
-            .values({
-                fid: fid as unknown as Fid,
-                messageType,
-                verifyMethod: METHOD_VERIFY,
-                verifyAddress: address,
-                publicKey,
-                txHash,
-                signature,
-                status: "PENDING",
-            })
-            .execute();
+        await this.handleSubmitProof(messageType, fid, address, publicKey, signature);
     }
 
     async handleVerifyRemoveAddress(
@@ -202,6 +188,18 @@ export class SubmitProofWorker {
             log.error(`Farcaster was not attested for fid: ${fid}`);
             return;
         }
+
+        // handle submit proof to contract
+        await this.handleSubmitProof(messageType, fid, address, publicKey, signature);
+    }
+
+    async handleSubmitProof(
+        messageType: number,
+        fid: bigint,
+        address: `0x${string}`,
+        publicKey: `0x${string}`,
+        signature: `0x${string}`,
+    ) {
         let txHash = "", status;
         try {
             txHash = await this.client.submitVerifyProof(messageType, fid, address, publicKey, signature);
@@ -210,7 +208,6 @@ export class SubmitProofWorker {
             log.error(`Error submitting proof to contract: ${error}`);
             status = "FAILED";
         }
-        // handle submit proof to contract
 
         // insert into db
         await this.db.insertInto("verifyProofs")
