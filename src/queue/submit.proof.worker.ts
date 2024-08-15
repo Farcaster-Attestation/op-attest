@@ -10,12 +10,16 @@ import { QueueData } from "./queue.data";
 import { DB, Fid } from "@farcaster/shuttle";
 import { AppDb } from "../indexer/models";
 import { METHOD_VERIFY } from "../env";
+import { Eas } from "../attested/eas";
 
 export class SubmitProofWorker {
+    public eas: Eas;
     private readonly db: AppDb;
     public client: Client;
 
     constructor(db: DB) {
+        this.eas = new Eas();
+        this.eas.connect();
         this.client = Client.getInstance();
         this.db = db as unknown as AppDb;
     }
@@ -168,8 +172,18 @@ export class SubmitProofWorker {
             return;
         }
 
-        // handle submit proof to contract
-        await this.handleSubmitProof(messageType, fid, address, publicKey, signature);
+        switch (METHOD_VERIFY) {
+            case 2:
+                // handle submit proof to contract with method verify optimistic
+                await this.handleSubmitProof(messageType, fid, address, publicKey, signature);
+                break;
+            case 1:
+                // attest on chain instantly
+                await this.handleAttestOnChain(messageType, fid, address, publicKey, signature, METHOD_VERIFY);
+                break;
+            default:
+                log.error(`Unknown verify method: ${METHOD_VERIFY}`);
+        }
     }
 
     async handleVerifyRemoveAddress(
@@ -189,8 +203,19 @@ export class SubmitProofWorker {
             return;
         }
 
-        // handle submit proof to contract
-        await this.handleSubmitProof(messageType, fid, address, publicKey, signature);
+        switch (METHOD_VERIFY) {
+            case 2:
+                // handle submit proof to contract with method verify optimistic
+                await this.handleSubmitProof(messageType, fid, address, publicKey, signature);
+                break;
+            case 1:
+                // attest on chain instantly
+                await this.handleRevokeAttestation(messageType, fid, address, publicKey, signature, METHOD_VERIFY);
+                break;
+            default:
+                log.error(`Unknown verify method: ${METHOD_VERIFY}`);
+
+        }
     }
 
     async handleSubmitProof(
@@ -220,6 +245,64 @@ export class SubmitProofWorker {
                 txHash,
                 signature,
                 status: status,
+            })
+            .execute();
+    }
+
+    async handleAttestOnChain(
+        messageType: number,
+        fid: bigint,
+        address: `0x${string}`,
+        publicKey: `0x${string}`,
+        signature: `0x${string}`,
+        methodVerify: number,
+    ) {
+        const tx = await this.eas.attestOnChain(
+            fid,
+            address,
+            publicKey,
+            signature,
+            methodVerify,
+        );
+
+        // insert into db
+        await this.db.insertInto("verifyProofs")
+            .values({
+                fid: fid as unknown as Fid,
+                messageType,
+                verifyMethod: methodVerify,
+                verifyAddress: address,
+                publicKey,
+                txHash: tx,
+                signature,
+                status: "ATTESTED",
+            })
+            .execute();
+    }
+
+    async handleRevokeAttestation(
+        messageType: number,
+        fid: bigint,
+        address: `0x${string}`,
+        publicKey: `0x${string}`,
+        signature: `0x${string}`,
+        methodVerify: number,
+    ) {
+        const uid = await this.client.getAttestationUid(fid, address);
+
+        const tx = await this.eas.revokeAttestation(uid);
+
+        // insert into db
+        await this.db.insertInto("verifyProofs")
+            .values({
+                fid: fid as unknown as Fid,
+                messageType,
+                verifyMethod: methodVerify,
+                verifyAddress: address,
+                publicKey,
+                txHash: tx??'',
+                signature,
+                status: "REVOKED",
             })
             .execute();
     }

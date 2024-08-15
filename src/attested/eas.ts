@@ -65,7 +65,7 @@ export class Eas {
 
     async revokeAttestation(uid: string) {
         const transaction = await this.eas.revoke({ data: { uid }, schema: SCHEMA_UID });
-        await transaction.wait();
+        await transaction.wait(MIN_CONFIRMATIONS);
 
         return transaction.receipt?.hash;
     }

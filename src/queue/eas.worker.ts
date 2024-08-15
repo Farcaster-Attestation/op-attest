@@ -121,7 +121,7 @@ export class EasWorker {
         await this.db.updateTable("verifyProofs")
             .where("fid", "=", fid as unknown as Fid)
             .where("verifyAddress", "=", address)
-            .set({ status: "ATTESTED" })
+            .set({ status: "REVOKED" })
             .execute();
     }
 }

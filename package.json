@@ -29,7 +29,7 @@
     "@farcaster/core": "^0.14.18",
     "@farcaster/hub-nodejs": "^0.11.16",
     "@farcaster/hub-shuttle": "^0.1.6",
-    "@farcaster/shuttle": "^0.5.6",
+    "@farcaster/shuttle": "^0.5.11",
     "@jest/globals": "^29.7.0",
     "@swc/jest": "^0.2.36",
     "bullmq": "^5.8.6",

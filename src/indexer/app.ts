@@ -23,7 +23,7 @@ import {
 } from "../constant";
 import { QueueFactory } from "../queue/queue";
 import { Queue } from "bullmq";
-import { FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, MAX_FID } from "../env";
+import { FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, MAX_FID, METHOD_VERIFY } from "../env";
 import { SubmitProofWorker } from "../queue/submit.proof.worker";
 import { AppDb } from "./models";
 import { IndexEvent } from "./index.event";
@@ -34,7 +34,7 @@ export class App implements MessageHandler {
     private readonly hubSubscriber: HubSubscriber;
     private streamConsumer: HubEventStreamConsumer;
     public redis: RedisClient;
-    public proofQueue: Queue
+    public proofQueue: Queue;
 
     constructor(db: DB, redis: RedisClient, hubSubscriber: HubSubscriber, streamConsumer: HubEventStreamConsumer) {
         this.db = db;
@@ -88,9 +88,11 @@ export class App implements MessageHandler {
             return ok({ skipped: false });
         });
 
-        // Start listen events from contract
-        const indexEvent = new IndexEvent(FARCASTER_OPTIMISTIC_VERIFY_ADDRESS,Client.getInstance(), this.db as unknown as AppDb);
-        await indexEvent.handleInterval()
+        // Start listen events from contract if verify method optimistic
+        if (METHOD_VERIFY === 2) {
+            const indexEvent = new IndexEvent(FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, Client.getInstance(), this.db as unknown as AppDb);
+            await indexEvent.handleInterval();
+        }
 
         log.info("Starting submit proof worker");
         const worker = new SubmitProofWorker(this.db).getWorker(this.redis.client);
