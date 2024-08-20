@@ -38,10 +38,10 @@ services:
     networks:
       - shuttle-network
 
-  shuttle:
+  indexer:
     build: .
     restart: unless-stopped
-    command: pnpm start start
+    command: pnpm start indexer
     depends_on:
       - postgres
       - redis

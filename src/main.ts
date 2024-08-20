@@ -11,7 +11,7 @@ const program = new Command()
     .description("OP-Attest use to automatically verify Farcaster accounts on EAS.")
     .version(JSON.parse(readFileSync("./package.json").toString()).version);
 
-program.command("start").description("Starts the op-attest").action(StartCMD.run);
+program.command("indexer").description("Starts the indexer of op-attest").action(StartCMD.run);
 program.command("backfill").description("Backfill the op-attest").action(BackFillCMD.run);
 program.command("worker").description("Starts the worker").action(WorkerCMD.run);
 program.command("attested").description("Starts the attested").action(AttestedCMD.run);
