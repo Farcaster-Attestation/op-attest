@@ -28,6 +28,7 @@ import { SubmitProofWorker } from "../queue/submit.proof.worker";
 import { AppDb } from "./models";
 import { IndexEvent } from "./index.event";
 import { Client } from "../client";
+import { isMergeMessageHubEvent } from "@farcaster/core";
 
 export class App implements MessageHandler {
     private readonly db: DB;
@@ -97,6 +98,11 @@ export class App implements MessageHandler {
         log.info("Starting submit proof worker");
         const worker = new SubmitProofWorker(this.db).getWorker(this.redis.client);
         await worker.run();
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async onHubEvent(event: HubEvent, txn: DB): Promise<boolean> {
+        return !isMergeMessageHubEvent(event);
     }
 
     async handleMessageMerge(

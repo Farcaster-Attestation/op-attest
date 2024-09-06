@@ -94,7 +94,7 @@ export class IndexEvent {
                 if (res) {
                     if (res.fromBlock > BigInt(res.prevSyncedBlock) + 1n) {
                         log.warn(
-                            `Skipped blocks from ${res.prevSyncedBlock + 1n} to ${res.fromBlock - 1n}`,
+                            `Skipped blocks from ${BigInt(res.prevSyncedBlock) + 1n} to ${res.fromBlock - 1n}`,
                         );
                     }
                     log.debug(
