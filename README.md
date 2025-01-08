@@ -32,7 +32,7 @@ POSTGRES_URL=postgres://shuttle:password@0.0.0.0:6541 REDIS_URL=0.0.0.0:16379 HU
 POSTGRES_URL=postgres://shuttle:password@0.0.0.0:6541 REDIS_URL=0.0.0.0:16379 HUB_HOST=<host>:<port> HUB_SSL=false PRIVATE_KEY=<private_key> METHOD_VERIFY=2 RPC_URL=<rpc_op> pnpm start indexer
 
 # Start the attested service
-POSTGRES_URL=postgres://shuttle:password@0.0.0.0:6541 REDIS_URL=0.0.0.0:16379 HUB_HOST=<host>:<port> HUB_SSL=false PRIVATE_KEY=<private_key> RPC_URL=<rpc_op> pnpm start attested
+POSTGRES_URL=postgres://shuttle:password@0.0.0.0:6541 REDIS_URL=0.0.0.0:16379 PRIVATE_KEY=<private_key> RPC_URL=<rpc_op> RESOLVER_ADDRESS=<address of resolver> pnpm start attested
 
 # Start the challenge service
 REDIS_URL=0.0.0.0:16379 HUB_HOST=<host>:<port> HUB_SSL=false PRIVATE_KEY=<private_key> RPC_URL=<rpc_op> pnpm start challenge

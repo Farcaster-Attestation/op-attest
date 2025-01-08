@@ -8,7 +8,7 @@ import {
 } from "viem";
 import { base, optimism, optimismSepolia } from "viem/chains";
 import {
-    FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, NETWORK, PRIVATE_KEY,
+    FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, METHOD_VERIFY, NETWORK, PRIVATE_KEY,
     RESOLVER_ADDRESS,
     RPC_URL,
 } from "./env";
@@ -52,6 +52,10 @@ export class Client {
         return Client.instance;
     }
 
+    /********************************************************************************
+     * Resolver client methods for interacting with the Farcaster Resolver contract *
+     * ******************************************************************************/
+
     // Check if the FID is attested on chain
     // Returns true if the FID is attested on chain
     // Returns false if the FID is not attested on chain
@@ -72,6 +76,52 @@ export class Client {
             args: [fid, address],
         });
     }
+
+    async attest(
+        fid: bigint,
+        address: `0x${string}`,
+        publicKey: `0x${string}`,
+        signature: `0x${string}`,
+        methodVerify: number = METHOD_VERIFY
+    ) {
+        const { request } = await this.publicClient.simulateContract({
+            address: RESOLVER_ADDRESS as `0x${string}`,
+            abi: resolverAbi,
+            functionName: "attest",
+            args: [address, fid, publicKey, BigInt(methodVerify), signature],
+            account: privateKeyToAccount(PRIVATE_KEY as `0x${string}`, { nonceManager }),
+        });
+
+        const txHash = await this.walletClient.writeContract(request);
+
+        log.info(`Attested FID: ${txHash}`);
+        return txHash;
+    }
+
+    async revoke(
+        fid: bigint,
+        address: `0x${string}`,
+        publicKey: `0x${string}`,
+        signature: `0x${string}`,
+        methodVerify: number = METHOD_VERIFY
+    ) {
+        const { request } = await this.publicClient.simulateContract({
+            address: RESOLVER_ADDRESS as `0x${string}`,
+            abi: resolverAbi,
+            functionName: "revoke",
+            args: [address, fid, publicKey, BigInt(methodVerify), signature],
+            account: privateKeyToAccount(PRIVATE_KEY as `0x${string}`, { nonceManager }),
+        });
+
+        const txHash = await this.walletClient.writeContract(request);
+
+        log.info(`Revoked FID: ${txHash}`);
+        return txHash;
+    }
+
+    /*************************************************************************************
+     * Wallet client methods for interacting with the farcaster optimistic wallet verify *
+     * ***********************************************************************************/
 
     // verifyAdd returns true if signature is invalid
     // otherwise returns false

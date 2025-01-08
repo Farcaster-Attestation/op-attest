@@ -2,7 +2,6 @@ import { Worker, Job } from "bullmq";
 import { EASQueueData } from "./queue.data";
 import { MessageType } from "@farcaster/core";
 import { log } from "../log";
-import { Eas } from "../attested/eas";
 import Redis, { Cluster } from "ioredis";
 import { EAS_QUEUE_NAME } from "../constant";
 import { Client } from "../client";
@@ -10,13 +9,10 @@ import { AppDb } from "../indexer/models";
 import { Fid } from "@farcaster/shuttle";
 
 export class EasWorker {
-    public eas: Eas;
     public client: Client;
     public db: AppDb;
 
     constructor(db : AppDb) {
-        this.eas = new Eas();
-        this.eas.connect();
         this.client = Client.getInstance();
         this.db = db;
     }
@@ -51,7 +47,13 @@ export class EasWorker {
                         );
                     break;
                 case MessageType.VERIFICATION_REMOVE:
-                    await this.handleVerifyRemoveAddress(BigInt(queueData.fid), queueData.verifyAddress);
+                    await this.handleVerifyRemoveAddress(
+                        BigInt(queueData.fid),
+                        queueData.verifyAddress,
+                        queueData.publicKey,
+                        queueData.signature,
+                        queueData.verifyMethod,
+                        );
                     break;
                 default:
                     log.error(`Unknown message type: ${queueData.messageType}`);
@@ -86,7 +88,7 @@ export class EasWorker {
             return;
         }
 
-        const tx = await this.eas.attestOnChain(
+        const tx = await this.client.attest(
             fid,
             address,
             publicKey,
@@ -102,7 +104,13 @@ export class EasWorker {
             .execute();
     }
 
-    async handleVerifyRemoveAddress(fid: bigint, address: `0x${string}`) {
+    async handleVerifyRemoveAddress(
+        fid: bigint,
+        address: `0x${string}`,
+        publicKey: `0x${string}`,
+        signature: `0x${string}`,
+        methodVerify: number,
+        ) {
         const isAttested  = await this.client.checkFidVerification(
             fid,
             address,
@@ -113,9 +121,13 @@ export class EasWorker {
             return;
         }
 
-        const uid = await this.client.getAttestationUid(fid, address);
-
-        const tx = await this.eas.revokeAttestation(uid);
+        const tx = await this.client.revoke(
+            fid,
+            address,
+            publicKey,
+            signature,
+            methodVerify,
+        );
         log.info(`Revoke attestation tx: ${tx}`);
 
         await this.db.updateTable("verifyProofs")

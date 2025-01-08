@@ -7,12 +7,32 @@ export const FarcasterOptimisticVerifyAbi = [
                 "type": "address"
             },
             {
+                "internalType": "contract IFarcasterPublicKeyVerifier",
+                "name": "pubKeyVerifier",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_challengingPeriod",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_depositAmount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_challengeRewardAmount",
+                "type": "uint256"
+            },
+            {
                 "internalType": "address",
                 "name": "admin",
                 "type": "address"
             }
         ],
-        "stateMutability": "nonpayable",
+        "stateMutability": "payable",
         "type": "constructor"
     },
     {
@@ -50,6 +70,33 @@ export const FarcasterOptimisticVerifyAbi = [
             }
         ],
         "name": "InvalidMessageType",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "fid",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "publicKey",
+                "type": "bytes32"
+            }
+        ],
+        "name": "InvalidPublicKey",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "balance",
+                "type": "uint256"
+            }
+        ],
+        "name": "NotEnoughDeposit",
         "type": "error"
     },
     {
@@ -310,7 +357,33 @@ export const FarcasterOptimisticVerifyAbi = [
     },
     {
         "inputs": [],
+        "name": "challengeRewardAmount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "challengingPeriod",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "depositAmount",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -440,6 +513,19 @@ export const FarcasterOptimisticVerifyAbi = [
         "outputs": [
             {
                 "internalType": "contract IFarcasterWalletVerifier",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "publicKeyVerifier",
+        "outputs": [
+            {
+                "internalType": "contract IFarcasterPublicKeyVerifier",
                 "name": "",
                 "type": "address"
             }
@@ -689,5 +775,9 @@ export const FarcasterOptimisticVerifyAbi = [
         ],
         "stateMutability": "view",
         "type": "function"
+    },
+    {
+        "stateMutability": "payable",
+        "type": "receive"
     }
 ] as const;
