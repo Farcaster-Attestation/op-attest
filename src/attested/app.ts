@@ -6,6 +6,7 @@ import { QueueFactory } from "../queue/queue";
 import { getDbClient, RedisClient } from "@farcaster/shuttle";
 import { EasWorker } from "../queue/eas.worker";
 import { log } from "../log";
+import { sha256, toHex } from "viem";
 
 export class AppAttested {
     private readonly db: AppDb;
@@ -55,21 +56,32 @@ export class AppAttested {
 
             log.info(`Found ${proofs.length} proofs to attest`);
 
-            const queuesData = proofs.map((proof) => {
-                return {
-                    name: EAS_QUEUE_NAME,
-                    data: {
-                        publicKey: proof.publicKey,
-                        messageType: proof.messageType,
-                        fid: proof.fid,
-                        verifyAddress: proof.verifyAddress,
-                        signature: proof.signature,
-                        verifyMethod: proof.verifyMethod,
-                    }
-                };
-            });
+            for (const proof of proofs) {
+                await this.checkAndAddJob({
+                    publicKey: proof.publicKey,
+                    messageType: proof.messageType,
+                    fid: proof.fid,
+                    verifyAddress: proof.verifyAddress,
+                    signature: proof.signature,
+                    verifyMethod: proof.verifyMethod,
+                });
+            }
 
-            await this.easQueue.addBulk(queuesData);
         }, 1000 * 60 * 60); // * 60 * 60
+    }
+
+    async checkAndAddJob(data: unknown) {
+        const jobId = this.generateJobId(JSON.stringify(data));
+        const existingJob = await this.easQueue.getJob(jobId);
+        if (existingJob) {
+            log.warn("Job already exists:", jobId);
+            return;
+        }
+
+        await this.easQueue.add(EAS_QUEUE_NAME, data, { jobId });
+    }
+
+    generateJobId(data: string): `0x${string}` {
+        return sha256(toHex(data));
     }
 }

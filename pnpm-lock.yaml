@@ -15,14 +15,14 @@ importers:
         specifier: ^0.14.18
         version: 0.14.18(typescript@5.5.2)
       '@farcaster/hub-nodejs':
-        specifier: ^0.11.16
-        version: 0.11.16(typescript@5.5.2)
+        specifier: ^0.12.7
+        version: 0.12.7(typescript@5.5.2)
       '@farcaster/hub-shuttle':
-        specifier: ^0.1.6
+        specifier: 0.1.6
         version: 0.1.6(typescript@5.5.2)
       '@farcaster/shuttle':
-        specifier: ^0.6.1
-        version: 0.6.1(typescript@5.5.2)
+        specifier: 0.6.12
+        version: 0.6.12(typescript@5.5.2)
       '@jest/globals':
         specifier: ^29.7.0
         version: 29.7.0
@@ -507,14 +507,18 @@ packages:
   '@ethersproject/web@5.7.1':
     resolution: {integrity: sha512-Gueu8lSvyjBWL4cYsWsjh6MtMwM0+H4HvqFPZfB6dV8ctbP9zFAO73VG1cMWae0FLPCtz0peKPpZY8/ugJJX2w==}
 
+  '@faker-js/faker@7.6.0':
+    resolution: {integrity: sha512-XK6BTq1NDMo9Xqw/YkYyGjSsg44fbNwYRx7QK2CuoQgyy+f1rrTDHoExVM5PsyXCtfl2vs2vVJ0MN0yN6LppRw==}
+    engines: {node: '>=14.0.0', npm: '>=6.0.0'}
+
   '@farcaster/core@0.14.15':
     resolution: {integrity: sha512-qEPaumn5+UMZ7r4VZRt12RgCV98gy/SXP1WZ80DyCvUsbJamgQUfRZH69Z5SKJyuN4SAJo6gknZ4ws5+XLyzWA==}
 
   '@farcaster/core@0.14.18':
     resolution: {integrity: sha512-uyYJEPcSier9GtcWo23nMZX1s+rXEFhtN/ObDlXWYRov1iCa3R3XtUJ+QtjpfgTL9zBGjhs9yB4BWMtEjL5Ldw==}
 
-  '@farcaster/core@0.15.2':
-    resolution: {integrity: sha512-GvNnscadzT7OUxuL6iDAwL6j7GCNZsjilPudI52/x+Y6nMfXuyD7sRY0rgsAYePi77UHDxNs5Qi5MRFwTUIWhQ==}
+  '@farcaster/core@0.15.6':
+    resolution: {integrity: sha512-Vxq2JhqdZYEMjH4PIwPXQkalY46S4Mol2oCSHUafXenDx6WSoQJqF/4an4KyxGQbmA7Cf8+hl6zuNzkkHXEUyQ==}
 
   '@farcaster/hot-shots@10.0.0':
     resolution: {integrity: sha512-wVbdYvZL41SuCOFOUPsso16Ld/CZtjhVE0dJr8xgR2AygniI7YR9a9lmtIZS94/LUxL84JLCAkUJzTIpPKCagQ==}
@@ -523,14 +527,14 @@ packages:
   '@farcaster/hub-nodejs@0.11.16':
     resolution: {integrity: sha512-u7VHi3CvCK/R6bkZ3MkU3juhIXmrYQAGTZ2QLSgDZsOihUnqtvyn9cSV01LFV/1Q3ax4h3B6+54aVCblZW+68Q==}
 
-  '@farcaster/hub-nodejs@0.12.2':
-    resolution: {integrity: sha512-BR+Skns2c2XAtlvmV543QrUVNZNWJQj9pwHY6ApJK2AO1WFqcTo6WwmpVnhPotI9+MDO0uObuE97AieUNWuQDw==}
+  '@farcaster/hub-nodejs@0.12.7':
+    resolution: {integrity: sha512-05zXNqnHRBSbOkHl0KDh6l60nHK5MiKFky0JBGbdOZXdkFCk4FIiHv9AGLxjFXr/FxA3jSTHUJfvRRe5TonjRw==}
 
   '@farcaster/hub-shuttle@0.1.6':
     resolution: {integrity: sha512-ZFgVMoajAIeX7zVGLPVF0U62gS2UwRFxdJFV2PSREs0+TtylbURPl7mDmdZmBomD20QD7PjA5Jf2Lk6tC3nFYg==}
 
-  '@farcaster/shuttle@0.6.1':
-    resolution: {integrity: sha512-1bnQFVd6QjzLM3x0dZZj/kAQQt3Z1ooc6uTgnFEy73Nwoe/Pji6Guh01+VXuWXLcG50LGwRh5an4IuFbdLlbtA==}
+  '@farcaster/shuttle@0.6.12':
+    resolution: {integrity: sha512-FTC7tububKt4D5/W+IaA4uTictACnUK2VCMuQJCLeS5BmEQG4OrnZ989fCa7ROxZMmAMY2IurG+uimHFZOkhEw==}
 
   '@fastify/busboy@2.1.1':
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
@@ -3693,6 +3697,8 @@ snapshots:
       '@ethersproject/properties': 5.7.0
       '@ethersproject/strings': 5.7.0
 
+  '@faker-js/faker@7.6.0': {}
+
   '@farcaster/core@0.14.15(typescript@5.5.2)':
     dependencies:
       '@noble/curves': 1.4.0
@@ -3719,8 +3725,9 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@farcaster/core@0.15.2(typescript@5.5.2)':
+  '@farcaster/core@0.15.6(typescript@5.5.2)':
     dependencies:
+      '@faker-js/faker': 7.6.0
       '@noble/curves': 1.4.0
       '@noble/hashes': 1.4.0
       bs58: 5.0.0
@@ -3746,9 +3753,9 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@farcaster/hub-nodejs@0.12.2(typescript@5.5.2)':
+  '@farcaster/hub-nodejs@0.12.7(typescript@5.5.2)':
     dependencies:
-      '@farcaster/core': 0.15.2(typescript@5.5.2)
+      '@farcaster/core': 0.15.6(typescript@5.5.2)
       '@grpc/grpc-js': 1.11.1
       '@noble/hashes': 1.4.0
       neverthrow: 6.2.2
@@ -3779,10 +3786,10 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@farcaster/shuttle@0.6.1(typescript@5.5.2)':
+  '@farcaster/shuttle@0.6.12(typescript@5.5.2)':
     dependencies:
       '@farcaster/hot-shots': 10.0.0
-      '@farcaster/hub-nodejs': 0.12.2(typescript@5.5.2)
+      '@farcaster/hub-nodejs': 0.12.7(typescript@5.5.2)
       commander: 11.0.0
       dotenv: 16.4.5
       ioredis: 5.4.1
