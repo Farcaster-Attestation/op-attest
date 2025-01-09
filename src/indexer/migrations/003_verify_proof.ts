@@ -65,7 +65,7 @@ export const up = async (db: Kysely<never>) => {
         .addColumn("status", "text", (col) => col.notNull())
         .addUniqueConstraint("proof_hash_unique", ["txHash"])
         .$call((qb) =>
-            qb.addPrimaryKeyConstraint("proof_pkey", ["id"]).addUniqueConstraint("proof_hash_unique", ["txHash"]),
+            qb.addPrimaryKeyConstraint("proof_pkey", ["id"]),
         )
         .execute();
 

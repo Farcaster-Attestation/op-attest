@@ -168,7 +168,7 @@ export class SubmitProofWorker {
         );
 
         if (isAttested) {
-            log.error(`Farcaster was attested for fid: ${fid}`);
+            log.warn(`Farcaster was attested for fid: ${fid}`);
             return;
         }
 
