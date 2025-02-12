@@ -38,6 +38,39 @@ services:
     networks:
       - shuttle-network
 
+  worker:
+    build: .
+    restart: unless-stopped
+    command: pnpm start worker
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - POSTGRES_URL=postgres://shuttle:password@postgres:5432
+      - REDIS_URL=redis:6379
+      - MAX_FID=100
+    env_file:
+      - .env
+    networks:
+      - shuttle-network
+
+  backfill:
+    build: .
+    restart: unless-stopped
+    command: pnpm start backfill
+    depends_on:
+      - postgres
+      - redis
+      - worker
+    environment:
+      - POSTGRES_URL=postgres://shuttle:password@postgres:5432
+      - REDIS_URL=redis:6379
+      - MAX_FID=100
+    env_file:
+      - .env
+    networks:
+      - shuttle-network
+
   indexer:
     build: .
     restart: unless-stopped
@@ -45,6 +78,23 @@ services:
     depends_on:
       - postgres
       - redis
+      - worker
+    environment:
+      - POSTGRES_URL=postgres://shuttle:password@postgres:5432
+      - REDIS_URL=redis:6379
+    env_file:
+      - .env
+    networks:
+      - shuttle-network
+
+  attested:
+    build: .
+    restart: unless-stopped
+    command: pnpm start attested
+    depends_on:
+      - postgres
+      - redis
+      - indexer
     environment:
       - POSTGRES_URL=postgres://shuttle:password@postgres:5432
       - REDIS_URL=redis:6379
