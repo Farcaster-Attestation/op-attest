@@ -12,8 +12,8 @@ importers:
         specifier: ^2.3.0
         version: 2.3.0(ts-node@10.9.2(@swc/core@1.6.7)(@types/node@20.14.7)(typescript@5.5.2))(typescript@5.5.2)
       '@farcaster/core':
-        specifier: ^0.14.18
-        version: 0.14.18(typescript@5.5.2)
+        specifier: ^0.15.6
+        version: 0.15.6(typescript@5.5.2)
       '@farcaster/hub-nodejs':
         specifier: ^0.12.7
         version: 0.12.7(typescript@5.5.2)
@@ -513,9 +513,6 @@ packages:
 
   '@farcaster/core@0.14.15':
     resolution: {integrity: sha512-qEPaumn5+UMZ7r4VZRt12RgCV98gy/SXP1WZ80DyCvUsbJamgQUfRZH69Z5SKJyuN4SAJo6gknZ4ws5+XLyzWA==}
-
-  '@farcaster/core@0.14.18':
-    resolution: {integrity: sha512-uyYJEPcSier9GtcWo23nMZX1s+rXEFhtN/ObDlXWYRov1iCa3R3XtUJ+QtjpfgTL9zBGjhs9yB4BWMtEjL5Ldw==}
 
   '@farcaster/core@0.15.6':
     resolution: {integrity: sha512-Vxq2JhqdZYEMjH4PIwPXQkalY46S4Mol2oCSHUafXenDx6WSoQJqF/4an4KyxGQbmA7Cf8+hl6zuNzkkHXEUyQ==}
@@ -3700,19 +3697,6 @@ snapshots:
   '@faker-js/faker@7.6.0': {}
 
   '@farcaster/core@0.14.15(typescript@5.5.2)':
-    dependencies:
-      '@noble/curves': 1.4.0
-      '@noble/hashes': 1.4.0
-      bs58: 5.0.0
-      neverthrow: 6.2.2
-      viem: 1.21.4(typescript@5.5.2)
-    transitivePeerDependencies:
-      - bufferutil
-      - typescript
-      - utf-8-validate
-      - zod
-
-  '@farcaster/core@0.14.18(typescript@5.5.2)':
     dependencies:
       '@noble/curves': 1.4.0
       '@noble/hashes': 1.4.0
