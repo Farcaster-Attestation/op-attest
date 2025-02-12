@@ -169,7 +169,7 @@ export class App implements MessageHandler {
         const startedAt = Date.now();
         if (fids.length === 0) {
             const maxFidResult = await this.hubSubscriber.hubClient!.getFids({ pageSize: 1, reverse: true });
-            if (maxFidResult.isErr()) {
+            if (maxFidResult.isErr() && !MAX_FID) {
                 log.error("Failed to get max fid", maxFidResult.error);
                 throw maxFidResult.error;
             }
