@@ -53,6 +53,8 @@ services:
       - .env
     networks:
       - shuttle-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   backfill:
     build: .
@@ -70,6 +72,8 @@ services:
       - .env
     networks:
       - shuttle-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   indexer:
     build: .
@@ -86,6 +90,8 @@ services:
       - .env
     networks:
       - shuttle-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   attested:
     build: .
@@ -102,6 +108,8 @@ services:
       - .env
     networks:
       - shuttle-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 volumes:
   postgres-data:
