@@ -11,7 +11,7 @@ logs
 log
 
 # Environment
-*.env*
+.env
 
 # Misc
 .DS_Store
