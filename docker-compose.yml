@@ -38,43 +38,6 @@ services:
     networks:
       - shuttle-network
 
-  worker:
-    build: .
-    restart: unless-stopped
-    command: pnpm start worker
-    depends_on:
-      - postgres
-      - redis
-    environment:
-      - POSTGRES_URL=postgres://shuttle:password@postgres:5432
-      - REDIS_URL=redis:6379
-      - MAX_FID=100
-    env_file:
-      - .env
-    networks:
-      - shuttle-network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
-  backfill:
-    build: .
-    restart: unless-stopped
-    command: pnpm start backfill
-    depends_on:
-      - postgres
-      - redis
-      - worker
-    environment:
-      - POSTGRES_URL=postgres://shuttle:password@postgres:5432
-      - REDIS_URL=redis:6379
-      - MAX_FID=100
-    env_file:
-      - .env
-    networks:
-      - shuttle-network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
   indexer:
     build: .
     restart: unless-stopped
@@ -82,10 +45,10 @@ services:
     depends_on:
       - postgres
       - redis
-      - worker
     environment:
       - POSTGRES_URL=postgres://shuttle:password@postgres:5432
       - REDIS_URL=redis:6379
+      - PRIVATE_KEY=${PRIVATE_KEY_INDEXER}
     env_file:
       - .env
     networks:
@@ -104,6 +67,7 @@ services:
     environment:
       - POSTGRES_URL=postgres://shuttle:password@postgres:5432
       - REDIS_URL=redis:6379
+      - PRIVATE_KEY=${PRIVATE_KEY_ATTESTER}
     env_file:
       - .env
     networks:
