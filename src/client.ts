@@ -23,6 +23,7 @@ export class Client {
     private walletClient: WalletClient;
     private readonly account;
     private readonly gasLimit = 3_000_000n;
+    private currentNonce = 0;
 
     private constructor() {
         let chain;
@@ -193,25 +194,35 @@ export class Client {
         publicKey: `0x${string}`,
         signature: `0x${string}`,
     ) {
-        const { request } = await this.publicClient.simulateContract({
-            address: FARCASTER_OPTIMISTIC_VERIFY_ADDRESS,
-            abi: FarcasterOptimisticVerifyAbi,
-            functionName: "submitVerification",
-            args: [
-                messageType,
-                fid,
-                verifyAddress,
-                publicKey,
-                signature,
-            ],
-            account: this.account,
-            gas: this.gasLimit,
-        });
+        if (this.currentNonce == 0) {
+            this.currentNonce = await this.getNonce(this.account.address);
+        }
+        try {
+            const { request } = await this.publicClient.simulateContract({
+                address: FARCASTER_OPTIMISTIC_VERIFY_ADDRESS,
+                abi: FarcasterOptimisticVerifyAbi,
+                functionName: "submitVerification",
+                args: [
+                    messageType,
+                    fid,
+                    verifyAddress,
+                    publicKey,
+                    signature,
+                ],
+                account: this.account,
+                gas: this.gasLimit,
+                nonce: this.currentNonce,
+            });
 
-        const txHash = await this.walletClient.writeContract(request);
+            const txHash = await this.walletClient.writeContract(request);
+            log.warn(`Submitted proof to contract: ${txHash}`);
+            this.currentNonce++;
 
-        log.warn(`Submitted proof to contract: ${txHash}`);
-        return txHash;
+            return txHash;
+        } catch (err) {
+            log.error(`submitVerification error: ${err}`);
+            return "0x";
+        }
     }
 
     async challengeAdd(
@@ -264,5 +275,12 @@ export class Client {
 
         log.warn(`Submitted proof to contract: ${txHash}`);
         return txHash;
+    }
+
+    async getNonce(address: `0x${string}`) {
+        return await this.publicClient.getTransactionCount({
+            address: address,
+            blockTag: 'pending'
+        });
     }
 }

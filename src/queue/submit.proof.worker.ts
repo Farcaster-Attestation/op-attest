@@ -32,7 +32,7 @@ export class SubmitProofWorker {
             },
             {
                 autorun: false, // Don't start yet
-                useWorkerThreads: concurrency > 1,
+                useWorkerThreads: false,
                 concurrency,
                 connection: redis,
             },
@@ -235,18 +235,22 @@ export class SubmitProofWorker {
         }
 
         // insert into db
-        await this.db.insertInto("verifyProofs")
-            .values({
-                fid: fid as unknown as Fid,
-                messageType,
-                verifyMethod: METHOD_VERIFY,
-                verifyAddress: address,
-                publicKey,
-                txHash,
-                signature,
-                status: status,
-            })
-            .execute();
+        try {
+            await this.db.insertInto("verifyProofs")
+                .values({
+                    fid: fid as unknown as Fid,
+                    messageType,
+                    verifyMethod: METHOD_VERIFY,
+                    verifyAddress: address,
+                    publicKey,
+                    txHash,
+                    signature,
+                    status: status,
+                })
+                .execute();
+        } catch (error) {
+            log.error(`Error inserting proof to db: ${error}`);
+        }
     }
 
     async handleAttestOnChain(
