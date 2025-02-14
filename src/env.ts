@@ -21,3 +21,7 @@ export const METHOD_VERIFY = parseInt(process.env["METHOD_VERIFY"] || "2");
 // backfill
 export const BACKFILL_FIDS = process.env["FIDS"] || "";
 export const MAX_FID = process.env["MAX_FID"];
+
+// submitter
+export const SUBMITTER_INTERVAL = parseInt(process.env["SUBMITTER_INTERVAL"] || "3000"); // 3s
+export const SUBMITTER_BATCH_SIZE = parseInt(process.env["SUBMITTER_BATCH_SIZE"] || "10");

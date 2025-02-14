@@ -7,3 +7,11 @@ export const COMPLETION_MARKER_JOB_NAME = "completionMarker";
 export const SUBMIT_PROOF_QUEUE_NAME = "submit-proof";
 export const CHALLENGE_BLOCK_OFFSET = 433500; // 43200 blocks = 1 day plus 150 blocks for safety
 export const CHALLENGE_QUEUE_NAME = "challenge";
+
+export enum MessageStatus {
+    Created = 0,
+    HandlingSubmit = 1,
+    Submitted = 2,
+    HandlingAttest = 3,
+    Attested = 4,
+}
