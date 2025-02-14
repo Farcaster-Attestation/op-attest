@@ -21,6 +21,8 @@ export class Client {
     private static instance: Client;
     public publicClient: PublicClient;
     private walletClient: WalletClient;
+    private readonly account;
+    private readonly gasLimit = 3_000_000n;
 
     private constructor() {
         let chain;
@@ -43,6 +45,7 @@ export class Client {
             chain: chain,
             transport: http(RPC_URL),
         }) as WalletClient;
+        this.account = privateKeyToAccount(PRIVATE_KEY as `0x${string}`, { nonceManager });
     }
 
     static getInstance() {
@@ -89,7 +92,8 @@ export class Client {
             abi: resolverAbi,
             functionName: "attest",
             args: [address, fid, publicKey, BigInt(methodVerify), signature],
-            account: privateKeyToAccount(PRIVATE_KEY as `0x${string}`, { nonceManager }),
+            account: this.account,
+            gas: this.gasLimit,
         });
 
         const txHash = await this.walletClient.writeContract(request);
@@ -110,7 +114,8 @@ export class Client {
             abi: resolverAbi,
             functionName: "revoke",
             args: [address, fid, publicKey, BigInt(methodVerify), signature],
-            account: privateKeyToAccount(PRIVATE_KEY as `0x${string}`, { nonceManager }),
+            account: this.account,
+            gas: this.gasLimit,
         });
 
         const txHash = await this.walletClient.writeContract(request);
@@ -199,7 +204,8 @@ export class Client {
                 publicKey,
                 signature,
             ],
-            account: privateKeyToAccount(PRIVATE_KEY as `0x${string}`, { nonceManager }),
+            account: this.account,
+            gas: this.gasLimit,
         });
 
         const txHash = await this.walletClient.writeContract(request);
@@ -224,7 +230,8 @@ export class Client {
                 publicKey,
                 signature,
             ],
-            account: privateKeyToAccount(PRIVATE_KEY as `0x${string}`, { nonceManager }),
+            account: this.account,
+            gas: this.gasLimit,
         });
 
         const txHash = await this.walletClient.writeContract(request);
@@ -249,7 +256,8 @@ export class Client {
                 publicKey,
                 signature,
             ],
-            account: privateKeyToAccount(PRIVATE_KEY as `0x${string}`, { nonceManager }),
+            account: this.account,
+            gas: this.gasLimit,
         });
 
         const txHash = await this.walletClient.writeContract(request);
