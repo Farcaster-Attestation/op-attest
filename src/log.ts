@@ -4,7 +4,7 @@ const COLORIZE =
     process.env["COLORIZE"] === "true" ? true : process.env["COLORIZE"] === "false" ? false : process.stdout.isTTY;
 
 export const log = pino({
-    level: process.env["LOG_LEVEL"] || "info",
+    level: process.env["LOG_LEVEL"] || "warn",
     transport: {
         target: "pino-pretty",
         options: {

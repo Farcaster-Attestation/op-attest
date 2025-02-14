@@ -27,7 +27,7 @@ export class ChallengeWorker {
     async processChallenge(job: Job<EASQueueData>) {
         const queueData = job.data;
         try {
-            log.info(`Processing job: ${job.id} - data: ${JSON.stringify(queueData)}`);
+            log.warn(`Processing job: ${job.id} - data: ${JSON.stringify(queueData)}`);
             switch (queueData.messageType) {
                 case MessageType.VERIFICATION_ADD_ETH_ADDRESS: {
                     const verified = await this.client.verifyAdd(
@@ -36,7 +36,7 @@ export class ChallengeWorker {
                         queueData.publicKey as `0x${string}`,
                         queueData.signature as `0x${string}`,
                     );
-                    log.info(`Verification add address: ${verified}`);
+                    log.warn(`Verification add address: ${verified}`);
 
                     if (verified) {
                         // call the challengeAdd function
@@ -56,7 +56,7 @@ export class ChallengeWorker {
                         queueData.publicKey,
                         queueData.signature,
                     );
-                    log.info(`Verification remove: ${verified}`);
+                    log.warn(`Verification remove: ${verified}`);
 
                     if (verified) {
                         // call the challengeRemove function

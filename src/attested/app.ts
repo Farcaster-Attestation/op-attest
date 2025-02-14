@@ -38,7 +38,7 @@ export class AppAttested {
 
     async getProofs() {
         return setInterval(async () => {
-            log.info("Getting proofs to attest");
+            log.warn("Getting proofs to attest");
             const latestBlock = await this.db.selectFrom("syncHeads").select("head").where("network", "=", NETWORK).executeTakeFirst();
             const challengeBlock = latestBlock?.head??0 - CHALLENGE_BLOCK_OFFSET;
             if (challengeBlock < 0) {
@@ -54,7 +54,7 @@ export class AppAttested {
                 return;
             }
 
-            log.info(`Found ${proofs.length} proofs to attest`);
+            log.warn(`Found ${proofs.length} proofs to attest`);
 
             for (const proof of proofs) {
                 await this.checkAndAddJob({

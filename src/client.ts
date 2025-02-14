@@ -98,7 +98,7 @@ export class Client {
 
         const txHash = await this.walletClient.writeContract(request);
 
-        log.info(`Attested FID: ${txHash}`);
+        log.warn(`Attested FID: ${txHash}`);
         return txHash;
     }
 
@@ -120,7 +120,7 @@ export class Client {
 
         const txHash = await this.walletClient.writeContract(request);
 
-        log.info(`Revoked FID: ${txHash}`);
+        log.warn(`Revoked FID: ${txHash}`);
         return txHash;
     }
 
@@ -149,7 +149,7 @@ export class Client {
                 ],
             });
 
-            log.info(`tryChallengeAdd: ${result}`);
+            log.warn(`tryChallengeAdd: ${result}`);
             return result;
         } catch (err) {
             log.error(`tryChallengeAdd error: ${err}`);
@@ -178,7 +178,7 @@ export class Client {
                 ],
             });
 
-            log.info(`tryChallengeRemove: ${result}`);
+            log.warn(`tryChallengeRemove: ${result}`);
             return result;
         } catch (err) {
             log.error(`tryChallengeRemove error: ${err}`);
@@ -210,7 +210,7 @@ export class Client {
 
         const txHash = await this.walletClient.writeContract(request);
 
-        log.info(`Submitted proof to contract: ${txHash}`);
+        log.warn(`Submitted proof to contract: ${txHash}`);
         return txHash;
     }
 
@@ -236,7 +236,7 @@ export class Client {
 
         const txHash = await this.walletClient.writeContract(request);
 
-        log.info(`Submitted proof to contract: ${txHash}`);
+        log.warn(`Submitted proof to contract: ${txHash}`);
         return txHash;
     }
 
@@ -262,7 +262,7 @@ export class Client {
 
         const txHash = await this.walletClient.writeContract(request);
 
-        log.info(`Submitted proof to contract: ${txHash}`);
+        log.warn(`Submitted proof to contract: ${txHash}`);
         return txHash;
     }
 }

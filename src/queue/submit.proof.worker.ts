@@ -43,7 +43,7 @@ export class SubmitProofWorker {
         const queueData = job.data;
         try {
             const msgData = MessageData.decode(hexToBytes(queueData.messageDataHex));
-            log.info(`Processing job: ${job.id} - data: ${JSON.stringify(msgData)}`);
+            log.warn(`Processing job: ${job.id} - data: ${JSON.stringify(msgData)}`);
             switch (msgData.type) {
                 case MessageType.VERIFICATION_ADD_ETH_ADDRESS:
                     if (!msgData.verificationAddAddressBody) return;
@@ -64,7 +64,7 @@ export class SubmitProofWorker {
                                 signature,
                             );
 
-                            log.info(`Verify add address message status: 
+                            log.warn(`Verify add address message status: 
                             ${verified} 
                             - address: ${addressHex} 
                             - fid: ${msgData.fid} 
@@ -114,7 +114,7 @@ export class SubmitProofWorker {
                             signature,
                         );
 
-                        log.info(`Verify remove address message status: 
+                        log.warn(`Verify remove address message status: 
                         ${verified}
                         - address: ${addressHex}
                         - fid: ${msgData.fid}
