@@ -26,10 +26,10 @@ docker compose up postgres redis
 POSTGRES_URL=postgres://shuttle:password@0.0.0.0:6541 REDIS_URL=0.0.0.0:16379 HUB_HOST=<host>:<port> HUB_SSL=false PRIVATE_KEY=<private_key> MAX_FID=100 RPC_URL=<rpc_op> pnpm start worker
 
 # Kick off the backfill process (configure with MAX_FID=100 or BACKFILL_FIDS=1,2,3)
-POSTGRES_URL=postgres://shuttle:password@0.0.0.0:6541 REDIS_URL=0.0.0.0:16379 HUB_HOST=<host>:<port> HUB_SSL=false PRIVATE_KEY=<private_key> MAX_FID=100 RPC_URL=<rpc_op> pnpm start backfill
+POSTGRES_URL=postgres://shuttle:password@0.0.0.0:6541 REDIS_URL=0.0.0.0:16379 HUB_HOST=<host>:<port> HUB_SSL=false PRIVATE_KEY=<private_key> MAX_FID=100 RPC_URL=<rpc_op> BACKFILL_FIDS=12,32 pnpm start backfill
 
 # Start the indexer
-POSTGRES_URL=postgres://shuttle:password@0.0.0.0:6541 REDIS_URL=0.0.0.0:16379 HUB_HOST=<host>:<port> HUB_SSL=false PRIVATE_KEY=<private_key> METHOD_VERIFY=2 RPC_URL=<rpc_op> pnpm start indexer
+POSTGRES_URL=postgres://shuttle:password@0.0.0.0:6541 REDIS_URL=0.0.0.0:16379 HUB_HOST=<host>:<port> HUB_SSL=false PRIVATE_KEY=<private_key> METHOD_VERIFY=2 RPC_URL=<rpc_op> FARCASTER_OPTIMISTIC_VERIFY_ADDRESS=0x pnpm start indexer
 
 # Start the attested service
 POSTGRES_URL=postgres://shuttle:password@0.0.0.0:6541 REDIS_URL=0.0.0.0:16379 PRIVATE_KEY=<private_key> RPC_URL=<rpc_op> RESOLVER_ADDRESS=<address of resolver> pnpm start attested
