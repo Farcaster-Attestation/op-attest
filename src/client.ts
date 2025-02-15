@@ -22,7 +22,7 @@ export class Client {
     public publicClient: PublicClient;
     private walletClient: WalletClient;
     private readonly account;
-    private readonly gasLimit = 3_000_000n;
+    private readonly gasLimit = 5_000_000n;
     private currentNonce = 0;
 
     private constructor() {
