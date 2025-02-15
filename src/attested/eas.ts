@@ -1,7 +1,6 @@
 import { log } from "../log";
 import { Attestation, EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import {
-    EAS_CONTRACT_ADDRESS,
     METHOD_VERIFY,
     MIN_CONFIRMATIONS,
     NETWORK, PRIVATE_KEY,
@@ -15,6 +14,7 @@ export class Eas {
     public schemaEncoder: SchemaEncoder;
 
     constructor() {
+        const EAS_CONTRACT_ADDRESS = process.env["EAS_CONTRACT_ADDRESS"] || "";
         this.eas = new EAS(EAS_CONTRACT_ADDRESS);
         this.schemaEncoder = new SchemaEncoder("uint256 fid,bytes32 publicKey,uint256 verificationMethod,bytes memory signature")
     }

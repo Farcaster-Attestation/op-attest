@@ -55,14 +55,30 @@ services:
       - shuttle-network
     extra_hosts:
       - "host.docker.internal:host-gateway"
-
+  submitter:
+    build: .
+    restart: unless-stopped
+    command: pnpm start submitter
+    depends_on:
+      - postgres
+      - indexer
+    environment:
+      - POSTGRES_URL=postgres://shuttle:password@postgres:5432
+      - REDIS_URL=redis:6379
+      - PRIVATE_KEY=${PRIVATE_KEY_SUBMITTER}
+    env_file:
+      - .env
+    networks:
+      - shuttle-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      -
   attested:
     build: .
     restart: unless-stopped
     command: pnpm start attested
     depends_on:
       - postgres
-      - redis
       - indexer
     environment:
       - POSTGRES_URL=postgres://shuttle:password@postgres:5432

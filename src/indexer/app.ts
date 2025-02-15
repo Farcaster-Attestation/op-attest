@@ -8,13 +8,10 @@ import {
 } from "@farcaster/shuttle";
 import { log } from "../log";
 import {
-    bytesToHexString,
-    HubEvent, isVerificationAddAddressMessage, isVerificationRemoveMessage,
-    Message,
+    HubEvent, Message,
 } from "@farcaster/hub-nodejs";
 import { ok } from "neverthrow";
 import { migrateToLatest } from "../db";
-import { farcasterTimeToDate, transformQueueData } from "../utils";
 import {
     HUB_ID,
     RECONCILE_JOB_NAME,
@@ -23,11 +20,7 @@ import {
 } from "../constant";
 import { QueueFactory } from "../queue/queue";
 import { Queue } from "bullmq";
-import { FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, MAX_FID, METHOD_VERIFY } from "../env";
-import { SubmitProofWorker } from "../queue/submit.proof.worker";
-import { AppDb } from "./models";
-import { IndexEvent } from "./index.event";
-import { Client } from "../client";
+import { MAX_FID } from "../env";
 import { isMergeMessageHubEvent } from "@farcaster/core";
 
 export class App implements MessageHandler {
@@ -88,16 +81,6 @@ export class App implements MessageHandler {
             void this.processHubEvent(event);
             return ok({ skipped: false });
         });
-
-        // Start listen events from contract if verify method optimistic
-        if (METHOD_VERIFY === 2) {
-            const indexEvent = new IndexEvent(FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, Client.getInstance(), this.db as unknown as AppDb);
-            await indexEvent.handleInterval();
-        }
-
-        log.info("Starting submit proof worker");
-        const worker = new SubmitProofWorker(this.db).getWorker(this.redis.client);
-        await worker.run();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -105,52 +88,11 @@ export class App implements MessageHandler {
         return !isMergeMessageHubEvent(event);
     }
 
-    async handleMessageMerge(
-        message: Message,
-        txn: DB,
-        operation: StoreMessageOperation,
-        state: MessageState,
-        isNew: boolean,
-        wasMissed: boolean,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async handleMessageMerge(message: Message, txn: DB, operation: StoreMessageOperation, state: MessageState, isNew: boolean, wasMissed: boolean,
     ): Promise<void> {
-        if (!isNew) {
-            // Message was already in the db, no-op
-            return;
-        }
-
-        const appDB = txn as unknown as AppDb;
-
-        const isVerify = isVerificationAddAddressMessage(message) || isVerificationRemoveMessage(message);
-        if (isVerify && state === "created") {
-            const queueData = transformQueueData(message);
-            await this.proofQueue.add(SUBMIT_PROOF_QUEUE_NAME, queueData);
-
-            await appDB
-                .insertInto("verifications")
-                .values({
-                    fid: message.data.fid,
-                    hash: message.hash,
-                    address: message.data.verificationAddAddressBody?.address || new Uint8Array(),
-                    blockHash: message.data.verificationAddAddressBody?.blockHash || new Uint8Array(),
-                    verificationType: message.data.verificationAddAddressBody?.verificationType || 0,
-                    chainId: message.data.verificationAddAddressBody?.chainId || 0,
-                    protocol: message.data.verificationAddAddressBody?.protocol || 0,
-                    timestamp: farcasterTimeToDate(message.data.timestamp) || new Date(),
-                })
-                .execute();
-        } else if (isVerify && state === "deleted") {
-            const queueData = transformQueueData(message);
-            await this.proofQueue.add(SUBMIT_PROOF_QUEUE_NAME, queueData);
-
-            await appDB
-                .updateTable("verifications")
-                .set({ deletedAt: farcasterTimeToDate(message.data.timestamp) || new Date() })
-                .where("hash", "=", message.hash)
-                .execute();
-        }
-
-        // const messageDesc = wasMissed ? `missed message (${operation})` : `message (${operation})`;
-        // log.debug(`${state} ${messageDesc} ${bytesToHexString(message.hash)._unsafeUnwrap()} (type ${message.data?.type})`);
+        log.debug(`Handling merge message: ${message.data?.fid} - ${message.data?.type}`);
+        return
     }
 
     private async processHubEvent(hubEvent: HubEvent) {

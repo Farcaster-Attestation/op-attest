@@ -70,6 +70,10 @@ export const up = async (db: Kysely<never>) => {
     .addColumn("signer", "bytea", (col) => col.notNull())
     .addColumn("body", "json", (col) => col.notNull())
     .addColumn("raw", "bytea", (col) => col.notNull())
+    .addColumn("status", "numeric", (col) => col.notNull().defaultTo(0))
+    .addColumn("submitTxHash", "text", (col) => col.defaultTo(""))
+    .addColumn("submitBlockNumber", "bigint", (col) => col.defaultTo(0))
+    .addColumn("attestTxHash", "text")
     .addUniqueConstraint("messages_hash_unique", ["hash"])
     .addUniqueConstraint("messages_hash_fid_type_unique", ["hash", "fid", "type"])
     // .addForeignKeyConstraint("messages_fid_foreign", ["fid"], "fids", ["fid"], (cb) => cb.onDelete("cascade"))
@@ -86,4 +90,12 @@ export const up = async (db: Kysely<never>) => {
   await db.schema.createIndex("messages_fid_index").on("messages").columns(["fid"]).execute();
 
   await db.schema.createIndex("messages_signer_index").on("messages").columns(["signer"]).execute();
+
+  await db.schema.createIndex("messages_type_status_index").on("messages").columns(["type", "status"]).execute();
+
+  await db.schema.createIndex("messages_status_index").on("messages").columns(["status"]).execute();
+
+  await db.schema.createIndex("messages_submit_block_number_index").on("messages").columns(["submitBlockNumber"]).execute();
+
+  await db.schema.createIndex("messages_submit_tx_hash_index").on("messages").columns(["submitTxHash"]).execute();
 };
