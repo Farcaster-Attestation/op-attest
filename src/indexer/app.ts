@@ -149,8 +149,8 @@ export class App implements MessageHandler {
                 .execute();
         }
 
-        const messageDesc = wasMissed ? `missed message (${operation})` : `message (${operation})`;
-        log.info(`${state} ${messageDesc} ${bytesToHexString(message.hash)._unsafeUnwrap()} (type ${message.data?.type})`);
+        // const messageDesc = wasMissed ? `missed message (${operation})` : `message (${operation})`;
+        // log.debug(`${state} ${messageDesc} ${bytesToHexString(message.hash)._unsafeUnwrap()} (type ${message.data?.type})`);
     }
 
     private async processHubEvent(hubEvent: HubEvent) {
