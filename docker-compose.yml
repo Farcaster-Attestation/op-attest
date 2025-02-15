@@ -48,13 +48,15 @@ services:
     environment:
       - POSTGRES_URL=postgres://shuttle:password@postgres:5432
       - REDIS_URL=redis:6379
-      - PRIVATE_KEY=${PRIVATE_KEY_INDEXER}
+      - PRIVATE_KEY=${PRIVATE_KEY_SUBMITTER}
+      - METHOD_VERIFY=${SUBMITTER_METHOD_VERIFY}
     env_file:
       - .env
     networks:
       - shuttle-network
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
   submitter:
     build: .
     restart: unless-stopped
@@ -66,13 +68,14 @@ services:
       - POSTGRES_URL=postgres://shuttle:password@postgres:5432
       - REDIS_URL=redis:6379
       - PRIVATE_KEY=${PRIVATE_KEY_SUBMITTER}
+      - METHOD_VERIFY=${SUBMITTER_METHOD_VERIFY}
     env_file:
       - .env
     networks:
       - shuttle-network
     extra_hosts:
       - "host.docker.internal:host-gateway"
-      -
+
   attested:
     build: .
     restart: unless-stopped

@@ -80,7 +80,7 @@ export class IndexEvent {
             return;
         }
 
-        if (syncedHead&& fromBlock > syncedHead.head) {
+        if (syncedHead && fromBlock > syncedHead.head) {
             fromBlock = BigInt(syncedHead.head) + 1n;
             toBlock = fromBlock + maxBehindHead;
         }
@@ -101,7 +101,7 @@ export class IndexEvent {
     async start() {
         return setInterval(async () => {
             try {
-                const res = await this.index(5n);
+                const res = await this.index(20n);
                 if (res) {
                     if (res.fromBlock > BigInt(res.prevSyncedBlock) + 1n) {
                         log.warn(
