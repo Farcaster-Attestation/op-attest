@@ -20,11 +20,11 @@ export class Challenge {
 
     async start() {
         // start watching for events
-        log.warn("Starting watch events");
+        log.info("Starting watch events");
         await this.watcher.watchEvent();
 
         // start the challenge worker
-        log.warn("Starting challenge worker");
+        log.info("Starting challenge worker");
         const worker = new ChallengeWorker(Client.getInstance()).getWorker(this.redis.client);
         await worker.run();
 

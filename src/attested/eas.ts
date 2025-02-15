@@ -58,7 +58,7 @@ export class Eas {
         });
 
         const newAttestationUID = await tx.wait(MIN_CONFIRMATIONS);
-        log.warn(`Attestation created: ${newAttestationUID}`);
+        log.info(`Attestation created: ${newAttestationUID}`);
 
         return newAttestationUID;
     }

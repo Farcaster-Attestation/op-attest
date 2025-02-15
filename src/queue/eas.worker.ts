@@ -34,7 +34,7 @@ export class EasWorker {
 
     async processEASQueue(job: Job<EASQueueData>) {
         const queueData = job.data;
-        log.warn(`Processing jobId: ${job.id} - message: ${JSON.stringify(queueData)}`);
+        log.info(`Processing jobId: ${job.id} - message: ${JSON.stringify(queueData)}`);
         try {
             switch (queueData.messageType) {
                 case MessageType.VERIFICATION_ADD_ETH_ADDRESS:
@@ -79,7 +79,7 @@ export class EasWorker {
         );
 
         if (isAttested) {
-            log.warn(`Farcaster was attested for fid: ${fid}`);
+            log.info(`Farcaster was attested for fid: ${fid}`);
             await this.db.updateTable("verifyProofs")
                 .where("fid", "=", fid as unknown as Fid)
                 .where("verifyAddress", "=", address)
@@ -95,7 +95,7 @@ export class EasWorker {
             signature,
             methodVerify,
         );
-        log.warn(`Attestation tx: ${tx}`);
+        log.info(`Attestation tx: ${tx}`);
 
         await this.db.updateTable("verifyProofs")
             .where("fid", "=", fid as unknown as Fid)
@@ -128,7 +128,7 @@ export class EasWorker {
             signature,
             methodVerify,
         );
-        log.warn(`Revoke attestation tx: ${tx}`);
+        log.info(`Revoke attestation tx: ${tx}`);
 
         await this.db.updateTable("verifyProofs")
             .where("fid", "=", fid as unknown as Fid)
