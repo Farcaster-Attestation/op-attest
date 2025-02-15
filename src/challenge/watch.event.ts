@@ -1,5 +1,5 @@
 import { Client } from "../client";
-import { FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, SUBMITTER_METHOD_VERIFY } from "../env";
+import { FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, METHOD_VERIFY } from "../env";
 import { FarcasterOptimisticVerifyAbi } from "../abi/farcaster.optimistic.verify.abi";
 import { RedisClient } from "@farcaster/shuttle";
 import { Queue } from "bullmq";
@@ -32,7 +32,7 @@ export class WatchEvent {
                             fid: log.args.fid ? log.args.fid.toString() : '0',
                             verifyAddress: log.args.verifyAddress,
                             signature: log.args.signature,
-                            verifyMethod: SUBMITTER_METHOD_VERIFY,
+                            verifyMethod: METHOD_VERIFY,
                         },
                     };
                 });

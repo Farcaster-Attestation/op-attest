@@ -9,14 +9,14 @@ export const TOTAL_SHARDS = parseInt(process.env["SHARDS"] || "0");
 export const SHARD_INDEX = parseInt(process.env["SHARD_NUM"] || "0");
 
 // default to the EAS contract on Sepolia
-export const EAS_CONTRACT_ADDRESS = process.env["EAS_CONTRACT_ADDRESS"] || "0x4200000000000000000000000000000000000021";
 export const NETWORK = process.env["NETWORK"] || "optimism-sepolia";
 export const PRIVATE_KEY = process.env["PRIVATE_KEY"] || "";
 export const SCHEMA_UID = process.env["SCHEMA_UID"] || "0x6c782a69f03e8b1839379ff7068027526d492cb4f38e4cfa5e708c669765234b";
-export const RESOLVER_ADDRESS = process.env["RESOLVER_ADDRESS"] || "0xba8BfD8306A6a588302A6B931fa53fb6eb8E3292";
 export const MIN_CONFIRMATIONS = parseInt(process.env["MIN_CONFIRMATIONS"] || "1");
-export const FARCASTER_OPTIMISTIC_VERIFY_ADDRESS = (process.env["FARCASTER_OPTIMISTIC_VERIFY_ADDRESS"] || "") as `0x${string}`;
 export const RPC_URL = process.env["RPC_URL"] || "";
+export const FARCASTER_OPTIMISTIC_VERIFY_ADDRESS = (process.env["FARCASTER_OPTIMISTIC_VERIFY_ADDRESS"] || "") as `0x${string}`;
+export const RESOLVER_ADDRESS = process.env["RESOLVER_ADDRESS"] || "0x53740150E93BB9dF2f265dA68ce8957Ee6A23A77";
+export const METHOD_VERIFY = parseInt(process.env["METHOD_VERIFY"] || "2");
 
 // backfill
 export const BACKFILL_FIDS = process.env["FIDS"] || "";
@@ -25,5 +25,9 @@ export const MAX_FID = process.env["MAX_FID"];
 // submitter
 export const SUBMITTER_SUBMIT_INTERVAL = parseInt(process.env["SUBMITTER_SUBMIT_INTERVAL"] || "3000"); // 3s
 export const SUBMITTER_BATCH_SIZE = parseInt(process.env["SUBMITTER_BATCH_SIZE"] || "50");
-export const SUBMITTER_METHOD_VERIFY = parseInt(process.env["SUBMITTER_METHOD_VERIFY"] || "2");
 export const SUBMITTER_INDEX_INTERVAL = parseInt(process.env["SUBMITTER_INDEX_INTERVAL"] || "4000"); // 4s
+
+// attested
+export const ATTEST_INTERVAL = parseInt(process.env["ATTEST_INTERVAL"] || "10000"); // 10s
+export const ATTEST_CHALLENGE_BLOCK_OFFSET = parseInt(process.env["ATTEST_CHALLENGE_BLOCK_OFFSET"] || "433500"); // blocks of 1 day plus 150 blocks for safety
+export const ATTEST_BATCH_SIZE = parseInt(process.env["ATTEST_BATCH_SIZE"] || "50");

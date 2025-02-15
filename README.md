@@ -47,9 +47,9 @@ pnpm start indexer
 PRIVATE_KEY=<private_key>
 FARCASTER_OPTIMISTIC_VERIFY_ADDRESS=<address of farcaster optimistic verify>
 POSTGRES_URL=<postgres_url>
+METHOD_VERIFY=<method_verify>
 SUBMITTER_SUBMIT_INTERVAL=<submit_interval_to_submit>
 SUBMITTER_BATCH_SIZE=<submit_batch_size>
-SUBMITTER_METHOD_VERIFY=<submit_method_verify>
 SUBMITTER_INDEX_INTERVAL=<submit_index_interval>
 
 ```
@@ -59,3 +59,20 @@ SUBMITTER_INDEX_INTERVAL=<submit_index_interval>
 pnpm start submitter
 ```
 # 4. Start Attested
+## 4.1. Configure the environment variables
+```bash
+# Configure the environment variables
+PRIVATE_KEY=<private_key>
+FARCASTER_OPTIMISTIC_VERIFY_ADDRESS=<address of farcaster optimistic verify>
+POSTGRES_URL=<postgres_url>
+METHOD_VERIFY=<method_verify>
+ATTEST_INTERVAL=<attest_interval>
+ATTEST_CHALLENGE_BLOCK_OFFSET=<attest_challenge_block_offset>
+ATTEST_BATCH_SIZE=<attest_batch_size>
+```
+
+## 4.2. Start the attested
+```bash
+# Start the attested
+pnpm start attested
+```

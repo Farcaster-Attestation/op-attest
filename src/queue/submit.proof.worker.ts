@@ -9,7 +9,7 @@ import { Client } from "../client";
 import { QueueData } from "./queue.data";
 import { DB, Fid } from "@farcaster/shuttle";
 import { AppDb } from "../indexer/models";
-import { SUBMITTER_METHOD_VERIFY } from "../env";
+import { METHOD_VERIFY } from "../env";
 import { Eas } from "../attested/eas";
 
 export class SubmitProofWorker {
@@ -84,7 +84,7 @@ export class SubmitProofWorker {
                                     .values({
                                         fid: msgData.fid,
                                         messageType: msgData.type,
-                                        verifyMethod: SUBMITTER_METHOD_VERIFY,
+                                        verifyMethod: METHOD_VERIFY,
                                         verifyAddress: addressHex as `0x${string}`,
                                         publicKey: queueData.publicKey,
                                         txHash: "",
@@ -134,7 +134,7 @@ export class SubmitProofWorker {
                                 .values({
                                     fid: msgData.fid,
                                     messageType: msgData.type,
-                                    verifyMethod: SUBMITTER_METHOD_VERIFY,
+                                    verifyMethod: METHOD_VERIFY,
                                     verifyAddress: addressHex as `0x${string}`,
                                     publicKey: queueData.publicKey,
                                     txHash: "",
@@ -172,17 +172,17 @@ export class SubmitProofWorker {
             return;
         }
 
-        switch (SUBMITTER_METHOD_VERIFY) {
+        switch (METHOD_VERIFY) {
             case 2:
                 // handle submit proof to contract with method verify optimistic
                 await this.handleSubmitProof(messageType, fid, address, publicKey, signature);
                 break;
             case 1:
                 // attest on chain instantly
-                await this.handleAttestOnChain(messageType, fid, address, publicKey, signature, SUBMITTER_METHOD_VERIFY);
+                await this.handleAttestOnChain(messageType, fid, address, publicKey, signature, METHOD_VERIFY);
                 break;
             default:
-                log.error(`Unknown verify method: ${SUBMITTER_METHOD_VERIFY}`);
+                log.error(`Unknown verify method: ${METHOD_VERIFY}`);
         }
     }
 
@@ -203,17 +203,17 @@ export class SubmitProofWorker {
             return;
         }
 
-        switch (SUBMITTER_METHOD_VERIFY) {
+        switch (METHOD_VERIFY) {
             case 2:
                 // handle submit proof to contract with method verify optimistic
                 await this.handleSubmitProof(messageType, fid, address, publicKey, signature);
                 break;
             case 1:
                 // attest on chain instantly
-                await this.handleRevokeAttestation(messageType, fid, address, publicKey, signature, SUBMITTER_METHOD_VERIFY);
+                await this.handleRevokeAttestation(messageType, fid, address, publicKey, signature, METHOD_VERIFY);
                 break;
             default:
-                log.error(`Unknown verify method: ${SUBMITTER_METHOD_VERIFY}`);
+                log.error(`Unknown verify method: ${METHOD_VERIFY}`);
 
         }
     }
@@ -240,7 +240,7 @@ export class SubmitProofWorker {
                 .values({
                     fid: fid as unknown as Fid,
                     messageType,
-                    verifyMethod: SUBMITTER_METHOD_VERIFY,
+                    verifyMethod: METHOD_VERIFY,
                     verifyAddress: address,
                     publicKey,
                     txHash,

@@ -1,31 +1,14 @@
 import { AppDb } from "../indexer/models";
 import { getDbClient } from "@farcaster/shuttle";
 import { log } from "../log";
-import { FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, SUBMITTER_METHOD_VERIFY, SUBMITTER_BATCH_SIZE, SUBMITTER_SUBMIT_INTERVAL } from "../env";
+import { FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, METHOD_VERIFY, SUBMITTER_BATCH_SIZE, SUBMITTER_SUBMIT_INTERVAL } from "../env";
 import { MessageStatus } from "../constant";
-import { MessageData, MessageType } from "@farcaster/core";
-import { Message, Protocol } from "@farcaster/hub-nodejs";
-import { encodeAbiParameters, encodeFunctionData, parseAbiParameters } from "viem";
+import { MessageType } from "@farcaster/core";
+import { encodeFunctionData } from "viem";
 import { FarcasterOptimisticVerifyAbi } from "../abi/farcaster.optimistic.verify.abi";
-import { QueueData } from "../queue/queue.data";
 import { Client } from "../client";
 import { IndexEvent } from "./index.event";
-
-type DataQuery = {
-    id: string;
-    fid: number;
-    type: MessageType;
-    raw: Uint8Array;
-}
-
-type InputData = {
-    id: string;
-    type: MessageType;
-    fid: bigint;
-    address: `0x${string}`;
-    publicKey: `0x${string}`;
-    signature: `0x${string}`;
-}
+import { DataQuery, InputData, transformData } from "../utils";
 
 export class AppSubmitter {
     private readonly db: AppDb;
@@ -68,13 +51,13 @@ export class AppSubmitter {
                 });
 
 
-                switch (SUBMITTER_METHOD_VERIFY) {
+                switch (METHOD_VERIFY) {
                     case 2:
                         // handle optimistic verify
                         await this.handleOptimisticVerify(data);
                         break;
                     default:
-                        log.error(`unknown method: ${SUBMITTER_METHOD_VERIFY}`);
+                        log.error(`unknown method: ${METHOD_VERIFY}`);
                 }
 
 
@@ -110,7 +93,7 @@ export class AppSubmitter {
     }
 
     async handleOptimisticVerify(data: DataQuery[]) {
-        const inputData = this.transformData(data);
+        const inputData = transformData(data);
         if (!inputData || inputData.length === 0) return;
 
         const respCheck = await this.checkOptimisticVerify(inputData);
@@ -184,83 +167,5 @@ export class AppSubmitter {
                 ? result.result
                 : false,
         }));
-    }
-
-    transformData(data: DataQuery[]) {
-        const inputData: InputData[] = [];
-        for (const { id, fid, type, raw } of data) {
-            const message = Message.decode(raw);
-            if (!message) {
-                log.error(`invalid message: ${fid} - ${type} - ${raw}`);
-                continue;
-            }
-
-            const queueData = this.parseMsg(message);
-            const signature = encodeAbiParameters(
-                parseAbiParameters("bytes32 signature_r, bytes32 signature_s, bytes message"),
-                [queueData.signatureR, queueData.signatureS, queueData.messageDataHex],
-            );
-
-            switch (type) {
-                case 7:
-                    if (!message.data ||
-                        !message.data.verificationAddAddressBody ||
-                        message.data.verificationAddAddressBody.protocol !== Protocol.ETHEREUM) continue;
-
-                    if (message.data.verificationAddAddressBody.chainId === 0 ||
-                        message.data.verificationAddAddressBody.chainId === 10
-                    ) {
-                        const { address } = message.data.verificationAddAddressBody;
-                        const addressHex = "0x" + Buffer.from(address).toString("hex") as `0x${string}`;
-                        inputData.push({
-                            id,
-                            type: 7,
-                            fid: BigInt(fid),
-                            address: addressHex,
-                            publicKey: queueData.publicKey,
-                            signature,
-                        });
-                    }
-                    break;
-                case 8:
-                    if (!message.data || !message.data.verificationRemoveBody) return;
-
-                    if (message.data.verificationRemoveBody.protocol === Protocol.ETHEREUM) {
-                        const { address } = message.data.verificationRemoveBody;
-                        const addressHex = "0x" + Buffer.from(address).toString("hex") as `0x${string}`;
-                        inputData.push({
-                            id,
-                            type: 8,
-                            fid: BigInt(fid),
-                            address: addressHex,
-                            publicKey: queueData.publicKey,
-                            signature,
-                        });
-                    }
-                    break;
-                default:
-                    log.error(`invalid message type: ${fid} - ${type}`);
-            }
-        }
-        return inputData;
-    }
-
-    parseMsg(message: Message): QueueData {
-        if (!message.data) throw new Error("Message data is missing");
-        const messageBytes = MessageData.encode(message.data).finish();
-
-        return {
-            messageDataHex: `0x${Buffer.from(messageBytes).toString("hex")}` as `0x${string}`,
-            signatureR: `0x${Buffer.from(message.signature).subarray(0, 32).toString("hex")}` as `0x${string}`,
-            signatureS: `0x${Buffer.from(message.signature).subarray(32).toString("hex")}` as `0x${string}`,
-            publicKey: `0x${Buffer.from(message.signer).toString("hex")}` as `0x${string}`,
-        };
-    }
-
-    print(data: unknown[]) {
-        const jsonString = JSON.stringify(data, (_, value) =>
-            typeof value === "bigint" ? value.toString() : value,
-        );
-        log.info(`Show results: ${jsonString}`);
     }
 }

@@ -8,9 +8,8 @@ import {
 } from "viem";
 import { base, optimism, optimismSepolia } from "viem/chains";
 import {
-    FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, SUBMITTER_METHOD_VERIFY, NETWORK, PRIVATE_KEY,
-    RESOLVER_ADDRESS,
-    RPC_URL,
+    FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, METHOD_VERIFY, NETWORK, PRIVATE_KEY,
+    RPC_URL, RESOLVER_ADDRESS,
 } from "./env";
 import { log } from "./log";
 import { resolverAbi } from "./abi/resolver.abi";
@@ -87,7 +86,7 @@ export class Client {
         address: `0x${string}`,
         publicKey: `0x${string}`,
         signature: `0x${string}`,
-        methodVerify: number = SUBMITTER_METHOD_VERIFY
+        methodVerify: number = METHOD_VERIFY
     ) {
         const { request } = await this.publicClient.simulateContract({
             address: RESOLVER_ADDRESS as `0x${string}`,
@@ -109,7 +108,7 @@ export class Client {
         address: `0x${string}`,
         publicKey: `0x${string}`,
         signature: `0x${string}`,
-        methodVerify: number = SUBMITTER_METHOD_VERIFY
+        methodVerify: number = METHOD_VERIFY
     ) {
         const { request } = await this.publicClient.simulateContract({
             address: RESOLVER_ADDRESS as `0x${string}`,
@@ -302,6 +301,27 @@ export class Client {
             return txHash;
         } catch (err) {
             log.error(`multicallSubmitProof error: ${err}`);
+            return "0x";
+        }
+    }
+
+    async multicallAttest(data: `0x${string}`[]) {
+        try {
+            const { request } = await this.publicClient.simulateContract({
+                address: RESOLVER_ADDRESS as `0x${string}`,
+                abi: multicallABI,
+                functionName: "multicall",
+                args: [data],
+                account: this.account,
+                gas: this.gasLimit,
+            });
+
+            const txHash = await this.walletClient.writeContract(request);
+
+            log.info(`Attest - Revoke batch proof to contract: ${txHash}`);
+            return txHash;
+        } catch (err) {
+            log.error(`multicallAttest error: ${err}`);
             return "0x";
         }
     }
