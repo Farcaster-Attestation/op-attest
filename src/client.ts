@@ -8,7 +8,7 @@ import {
 } from "viem";
 import { base, optimism, optimismSepolia } from "viem/chains";
 import {
-    FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, METHOD_VERIFY, NETWORK, PRIVATE_KEY,
+    FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, SUBMITTER_METHOD_VERIFY, NETWORK, PRIVATE_KEY,
     RESOLVER_ADDRESS,
     RPC_URL,
 } from "./env";
@@ -16,6 +16,7 @@ import { log } from "./log";
 import { resolverAbi } from "./abi/resolver.abi";
 import { privateKeyToAccount } from "viem/accounts";
 import { FarcasterOptimisticVerifyAbi } from "./abi/farcaster.optimistic.verify.abi";
+import { multicallABI } from "./abi/multicall.abi";
 
 export class Client {
     private static instance: Client;
@@ -86,7 +87,7 @@ export class Client {
         address: `0x${string}`,
         publicKey: `0x${string}`,
         signature: `0x${string}`,
-        methodVerify: number = METHOD_VERIFY
+        methodVerify: number = SUBMITTER_METHOD_VERIFY
     ) {
         const { request } = await this.publicClient.simulateContract({
             address: RESOLVER_ADDRESS as `0x${string}`,
@@ -108,7 +109,7 @@ export class Client {
         address: `0x${string}`,
         publicKey: `0x${string}`,
         signature: `0x${string}`,
-        methodVerify: number = METHOD_VERIFY
+        methodVerify: number = SUBMITTER_METHOD_VERIFY
     ) {
         const { request } = await this.publicClient.simulateContract({
             address: RESOLVER_ADDRESS as `0x${string}`,
@@ -282,5 +283,26 @@ export class Client {
             address: address,
             blockTag: 'pending'
         });
+    }
+
+    async multicallSubmitProof(data: `0x${string}`[]) {
+        try {
+            const { request } = await this.publicClient.simulateContract({
+                address: FARCASTER_OPTIMISTIC_VERIFY_ADDRESS,
+                abi: multicallABI,
+                functionName: "multicall",
+                args: [data],
+                account: this.account,
+                gas: this.gasLimit,
+            });
+
+            const txHash = await this.walletClient.writeContract(request);
+
+            log.info(`Submitted batch proof to contract: ${txHash}`);
+            return txHash;
+        } catch (err) {
+            log.error(`multicallSubmitProof error: ${err}`);
+            return "0x";
+        }
     }
 }

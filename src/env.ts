@@ -1,3 +1,4 @@
+export const LOG_LEVEL = process.env["LOG_LEVEL"] || "info";
 export const HUB_HOST = process.env["HUB_HOST"] || "localhost:2283";
 export const HUB_SSL = process.env["HUB_SSL"] === "true";
 
@@ -16,12 +17,13 @@ export const RESOLVER_ADDRESS = process.env["RESOLVER_ADDRESS"] || "0xba8BfD8306
 export const MIN_CONFIRMATIONS = parseInt(process.env["MIN_CONFIRMATIONS"] || "1");
 export const FARCASTER_OPTIMISTIC_VERIFY_ADDRESS = (process.env["FARCASTER_OPTIMISTIC_VERIFY_ADDRESS"] || "") as `0x${string}`;
 export const RPC_URL = process.env["RPC_URL"] || "";
-export const METHOD_VERIFY = parseInt(process.env["METHOD_VERIFY"] || "2");
 
 // backfill
 export const BACKFILL_FIDS = process.env["FIDS"] || "";
 export const MAX_FID = process.env["MAX_FID"];
 
 // submitter
-export const SUBMITTER_INTERVAL = parseInt(process.env["SUBMITTER_INTERVAL"] || "3000"); // 3s
-export const SUBMITTER_BATCH_SIZE = parseInt(process.env["SUBMITTER_BATCH_SIZE"] || "10");
+export const SUBMITTER_SUBMIT_INTERVAL = parseInt(process.env["SUBMITTER_SUBMIT_INTERVAL"] || "3000"); // 3s
+export const SUBMITTER_BATCH_SIZE = parseInt(process.env["SUBMITTER_BATCH_SIZE"] || "50");
+export const SUBMITTER_METHOD_VERIFY = parseInt(process.env["SUBMITTER_METHOD_VERIFY"] || "2");
+export const SUBMITTER_INDEX_INTERVAL = parseInt(process.env["SUBMITTER_INDEX_INTERVAL"] || "4000"); // 4s

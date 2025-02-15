@@ -71,7 +71,7 @@ export const up = async (db: Kysely<never>) => {
     .addColumn("body", "json", (col) => col.notNull())
     .addColumn("raw", "bytea", (col) => col.notNull())
     .addColumn("status", "numeric", (col) => col.notNull().defaultTo(0))
-    .addColumn("submitTxHash", "text")
+    .addColumn("submitTxHash", "text", (col) => col.defaultTo(""))
     .addColumn("submitBlockNumber", "bigint", (col) => col.defaultTo(0))
     .addColumn("attestTxHash", "text")
     .addUniqueConstraint("messages_hash_unique", ["hash"])
@@ -96,4 +96,6 @@ export const up = async (db: Kysely<never>) => {
   await db.schema.createIndex("messages_status_index").on("messages").columns(["status"]).execute();
 
   await db.schema.createIndex("messages_submit_block_number_index").on("messages").columns(["submitBlockNumber"]).execute();
+
+  await db.schema.createIndex("messages_submit_tx_hash_index").on("messages").columns(["submitTxHash"]).execute();
 };

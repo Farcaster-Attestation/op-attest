@@ -14,4 +14,6 @@ export enum MessageStatus {
     Submitted = 2,
     HandlingAttest = 3,
     Attested = 4,
+    FailedSubmit = 5,
+    FailedAttest = 6,
 }

@@ -1,8 +1,9 @@
 import { Client } from "../client";
-import { AppDb } from "./models";
-import { NETWORK } from "../env";
+import { AppDb } from "../indexer/models";
+import { NETWORK, SUBMITTER_INDEX_INTERVAL } from "../env";
 import { FarcasterOptimisticVerifyAbi } from "../abi/farcaster.optimistic.verify.abi";
 import { log } from "../log";
+import { MessageStatus } from "../constant";
 
 export class IndexEvent {
     constructor(
@@ -48,11 +49,15 @@ export class IndexEvent {
             signature: log.args.signature,
             blockNumber: log.blockNumber,
         }));
+        const uniqueSubmitEvents = Array.from(
+            new Map(submitEvents.map(event => [event.txHash, event])).values()
+        );
 
-        const persistJobs = submitEvents.map((event) => {
-            return this.db.updateTable("verifyProofs").where("txHash", "=", event.txHash).set({
-                blockNumber: event.blockNumber,
-                status: 'SUBMITTED',
+
+        const persistJobs = uniqueSubmitEvents.map((event) => {
+            return this.db.updateTable("messages").where("submitTxHash", "=", event.txHash).set({
+                submitBlockNumber: event.blockNumber,
+                status: MessageStatus.Submitted,
             }).execute();
         });
 
@@ -64,7 +69,7 @@ export class IndexEvent {
     async index(maxBehindHead: bigint) {
         const syncedHead = await this.getSyncHead();
         const lastHead = await this.getLastHead();
-        const toBlock = lastHead.number;
+        let toBlock = lastHead.number;
 
         let fromBlock: bigint = toBlock - maxBehindHead;
         if (syncedHead && syncedHead.head >= fromBlock) {
@@ -74,6 +79,12 @@ export class IndexEvent {
         if (toBlock <= fromBlock) {
             return;
         }
+
+        if (syncedHead&& fromBlock > syncedHead.head) {
+            fromBlock = BigInt(syncedHead.head) + 1n;
+            toBlock = fromBlock + maxBehindHead;
+        }
+
 
         const events = await this.indexRange(fromBlock, toBlock);
 
@@ -87,7 +98,7 @@ export class IndexEvent {
         };
     }
 
-    async handleInterval() {
+    async start() {
         return setInterval(async () => {
             try {
                 const res = await this.index(5n);
@@ -106,6 +117,6 @@ export class IndexEvent {
             } catch (e) {
                 log.error(e);
             }
-        }, 4000);
+        }, SUBMITTER_INDEX_INTERVAL);
     }
 }

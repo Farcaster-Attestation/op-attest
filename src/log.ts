@@ -1,10 +1,11 @@
 import { pino } from "pino";
+import { LOG_LEVEL } from "./env";
 
 const COLORIZE =
     process.env["COLORIZE"] === "true" ? true : process.env["COLORIZE"] === "false" ? false : process.stdout.isTTY;
 
 export const log = pino({
-    level: process.env["LOG_LEVEL"] || "warn",
+    level: LOG_LEVEL,
     transport: {
         target: "pino-pretty",
         options: {

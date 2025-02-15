@@ -2,7 +2,7 @@ import { log } from "../log";
 import { Attestation, EAS, SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import {
     EAS_CONTRACT_ADDRESS,
-    METHOD_VERIFY,
+    SUBMITTER_METHOD_VERIFY,
     MIN_CONFIRMATIONS,
     NETWORK, PRIVATE_KEY,
     RPC_URL,
@@ -34,7 +34,7 @@ export class Eas {
         address: string,
         publicKey: `0x${string}`,
         signature: `0x${string}`,
-        methodVerify: number = METHOD_VERIFY
+        methodVerify: number = SUBMITTER_METHOD_VERIFY
         ) {
         if (!this.eas) {
             throw new Error("EAS is not initialized");
