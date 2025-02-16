@@ -74,7 +74,7 @@ export class AppAttested {
     async fetchProofs() {
         const latestBlock = await this.db.selectFrom("syncHeads").select("head").where("network", "=", NETWORK).executeTakeFirst();
         const challengeBlock = latestBlock?.head??0 - ATTEST_CHALLENGE_BLOCK_OFFSET;
-        log.info("challengeBlock", challengeBlock);
+        log.info(`challengeBlock: ${challengeBlock}`);
         if (challengeBlock < 0) {
             return;
         }
