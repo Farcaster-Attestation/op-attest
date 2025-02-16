@@ -69,6 +69,8 @@ METHOD_VERIFY=<method_verify>
 ATTEST_INTERVAL=<attest_interval>
 ATTEST_CHALLENGE_BLOCK_OFFSET=<attest_challenge_block_offset>
 ATTEST_BATCH_SIZE=<attest_batch_size>
+ATTEST_MAX_RETRIES=<attest_max_retries> default 5times
+ATTEST_INTERVAL_RETRY=<attest_interval_retry> default 20s
 ```
 
 ## 4.2. Start the attested

@@ -58,6 +58,9 @@ export type MessagesCustomTable = {
     submitTxHash: string | null;
     submitBlockNumber: bigint;
     attestTxHash: string | null;
+    attestBlockNumber: bigint;
+    retrySubmit: number;
+    retryAttest: number;
 };
 
 export interface Tables extends HubTables {
