@@ -31,3 +31,5 @@ export const SUBMITTER_INDEX_INTERVAL = parseInt(process.env["SUBMITTER_INDEX_IN
 export const ATTEST_INTERVAL = parseInt(process.env["ATTEST_INTERVAL"] || "10000"); // 10s
 export const ATTEST_CHALLENGE_BLOCK_OFFSET = parseInt(process.env["ATTEST_CHALLENGE_BLOCK_OFFSET"] || "45000"); // blocks of 1 day plus 150 blocks for safety
 export const ATTEST_BATCH_SIZE = parseInt(process.env["ATTEST_BATCH_SIZE"] || "50");
+export const ATTEST_MAX_RETRIES = parseInt(process.env["ATTEST_MAX_RETRIES"] || "5");
+export const ATTEST_INTERVAL_RETRY = parseInt(process.env["ATTEST_INTERVAL_RETRY"] || "20000"); // 10s

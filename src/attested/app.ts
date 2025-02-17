@@ -3,16 +3,18 @@ import {
     ATTEST_BATCH_SIZE,
     ATTEST_CHALLENGE_BLOCK_OFFSET,
     ATTEST_INTERVAL,
-    NETWORK, METHOD_VERIFY,
+    NETWORK, METHOD_VERIFY, ATTEST_MAX_RETRIES, ATTEST_INTERVAL_RETRY,
 } from "../env";
 import { MessageStatus } from "../constant";
-import { getDbClient } from "@farcaster/shuttle";
+import { DB, getDbClient } from "@farcaster/shuttle";
 import { log } from "../log";
 import { DataQuery, InputData, transformData } from "../utils";
 import { MessageType } from "@farcaster/core";
 import { encodeFunctionData } from "viem";
 import { resolverAbi } from "../abi/resolver.abi";
 import { Client } from "../client";
+import { sql } from "kysely";
+import { migrateToLatest } from "../db";
 
 export class AppAttested {
     private readonly db: AppDb;
@@ -69,6 +71,28 @@ export class AppAttested {
                 this.isHandling = false;
             }
         }, ATTEST_INTERVAL);
+    }
+
+    async retryAttest() {
+        return setInterval(async () => {
+            try {
+                // select messages that handle attest failed that have not reached the max retries
+                // after that update the status to Submitted and increment the retry count
+                await this.db.transaction().execute(async (trx) => {
+                    await trx
+                        .updateTable("messages")
+                        .where("status", "=", Number(MessageStatus.FailedAttest))
+                        .where("retryAttest", "<", ATTEST_MAX_RETRIES)
+                        .set({
+                            status: Number(MessageStatus.Submitted),
+                            retryAttest:  sql`retry_attest + 1`
+                        })
+                        .execute();
+                });
+            } catch (err) {
+                log.error(`Error retrying attest: ${err}`);
+            }
+        }, ATTEST_INTERVAL_RETRY);
     }
 
     async fetchProofs() {
@@ -151,5 +175,13 @@ export class AppAttested {
             success: results !== "0x",
             result: results !== "0x" ? results : "",
         }));
+    }
+
+    async ensureMigrations() {
+        const result = await migrateToLatest(this.db as unknown as DB, log, "indexer");
+        if (result.isErr()) {
+            log.error("Failed to migrate database", result.error);
+            throw result.error;
+        }
     }
 }
