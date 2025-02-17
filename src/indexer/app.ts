@@ -81,6 +81,12 @@ export class App implements MessageHandler {
             void this.processHubEvent(event);
             return ok({ skipped: false });
         });
+
+        // Restart indexer if hub subscriber error
+        this.hubSubscriber.on("onError", (error) => {
+            log.error(`Hub subscriber error: ${error.message}`);
+            process.exit(1);
+        });
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
