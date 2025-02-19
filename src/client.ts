@@ -279,7 +279,6 @@ export class Client {
     async getNonce(address: `0x${string}`) {
         return await this.publicClient.getTransactionCount({
             address: address,
-            blockTag: 'pending'
         });
     }
 
