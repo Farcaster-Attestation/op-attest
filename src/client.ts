@@ -211,12 +211,11 @@ export class Client {
                 ],
                 account: this.account,
                 gas: this.gasLimit,
-                nonce: this.currentNonce,
+                nonce: this.currentNonce++,
             });
 
             const txHash = await this.walletClient.writeContract(request);
             log.info(`Submitted proof to contract: ${txHash}`);
-            this.currentNonce++;
 
             return txHash;
         } catch (err) {
