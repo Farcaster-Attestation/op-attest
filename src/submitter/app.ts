@@ -98,10 +98,11 @@ export class AppSubmitter {
         console.log('handle', data.length)
 
         const inputData = transformData(data);
+        console.log('inputData', inputData)
         if (!inputData || inputData.length === 0) return;
 
         const respCheck = await this.checkOptimisticVerify(inputData);
-        console.log(respCheck)
+        console.log('respCheck', respCheck)
         if (!respCheck || respCheck.length === 0) return;
 
         const validProofs = respCheck.filter((r) => r.success && !r.isVerified);
