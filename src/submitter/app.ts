@@ -93,17 +93,29 @@ export class AppSubmitter {
     }
 
     async handleOptimisticVerify(data: DataQuery[]) {
+        log.info(JSON.stringify(data, null, 2))
+        
+        log.info('A')
+
         const inputData = transformData(data);
         if (!inputData || inputData.length === 0) return;
+
+        log.info('B')
 
         const respCheck = await this.checkOptimisticVerify(inputData);
         if (!respCheck || respCheck.length === 0) return;
 
+        log.info('C')
+
         const validProofs = respCheck.filter((r) => r.success && !r.isVerified);
-        if (validProofs.length === 0) return;
+        if (validProofs.length === 0) return;   
+
+        log.info('D')
 
         const respSubmit = await this.submitOptimisticVerify(validProofs as InputData[]);
         if (!respSubmit || respSubmit.length === 0) return;
+
+        log.info('E')
 
         await this.db.transaction().execute(async (trx) => {
             for (const { id, success, result } of respSubmit) {
