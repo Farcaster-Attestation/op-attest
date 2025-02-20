@@ -101,6 +101,7 @@ export class AppSubmitter {
         if (!inputData || inputData.length === 0) return;
 
         const respCheck = await this.checkOptimisticVerify(inputData);
+        console.log(respCheck)
         if (!respCheck || respCheck.length === 0) return;
 
         const validProofs = respCheck.filter((r) => r.success && !r.isVerified);
