@@ -67,7 +67,10 @@ export function transformData(data: DataQuery[]) {
             case 7:
                 if (!message.data ||
                     !message.data.verificationAddAddressBody ||
-                    message.data.verificationAddAddressBody.protocol !== Protocol.ETHEREUM) continue;
+                    message.data.verificationAddAddressBody.protocol !== Protocol.ETHEREUM) {
+                    log.info(`Not Ethereum`);
+                    continue;
+                }
 
                 if (message.data.verificationAddAddressBody.chainId === 0 ||
                     message.data.verificationAddAddressBody.chainId === 10
@@ -82,10 +85,15 @@ export function transformData(data: DataQuery[]) {
                         publicKey: queueData.publicKey,
                         signature,
                     });
+                } else {
+                    log.info(`invalid chainId: ${message.data.verificationAddAddressBody.chainId}`);
                 }
                 break;
             case 8:
-                if (!message.data || !message.data.verificationRemoveBody) return;
+                if (!message.data || !message.data.verificationRemoveBody) {
+                    log.info(`Missing Remove Body`);
+                    continue;
+                }
 
                 if (message.data.verificationRemoveBody.protocol === Protocol.ETHEREUM) {
                     const { address } = message.data.verificationRemoveBody;
@@ -98,6 +106,8 @@ export function transformData(data: DataQuery[]) {
                         publicKey: queueData.publicKey,
                         signature,
                     });
+                } else {
+                    log.info(`Not Ethereum`);
                 }
                 break;
             default:
