@@ -36,6 +36,7 @@ export class AppSubmitter {
                 this.isHandling = true;
 
                 const dataQueries = await this.fetchBatch();
+                log.info(`dataQueries: ${dataQueries.length}`)
                 if (!dataQueries || dataQueries.length === 0) {
                     this.isHandling = false;
                     return;
@@ -64,6 +65,7 @@ export class AppSubmitter {
                 this.isHandling = false;
             } catch (error) {
                 log.error(`submitter err: ${error}`);
+            } finally {
                 this.isHandling = false;
             }
 
@@ -82,7 +84,7 @@ export class AppSubmitter {
                     trx.selectFrom("messages")
                         .select("id")
                         .where("type", "in", [7, 8])
-                        .where("status", "=", Number(MessageStatus.Created))
+                        .where("status", "in", [Number(MessageStatus.Created), Number(MessageStatus.HandlingSubmit), Number(MessageStatus.FailedSubmit)])
                         .orderBy("id", "asc") // Ensures deterministic order
                         .limit(SUBMITTER_BATCH_SIZE),
                 )
@@ -93,29 +95,17 @@ export class AppSubmitter {
     }
 
     async handleOptimisticVerify(data: DataQuery[]) {
-        log.info(JSON.stringify(data, null, 2))
-        
-        log.info('A')
-
         const inputData = transformData(data);
         if (!inputData || inputData.length === 0) return;
-
-        log.info('B')
 
         const respCheck = await this.checkOptimisticVerify(inputData);
         if (!respCheck || respCheck.length === 0) return;
 
-        log.info('C')
-
         const validProofs = respCheck.filter((r) => r.success && !r.isVerified);
         if (validProofs.length === 0) return;   
 
-        log.info('D')
-
         const respSubmit = await this.submitOptimisticVerify(validProofs as InputData[]);
         if (!respSubmit || respSubmit.length === 0) return;
-
-        log.info('E')
 
         await this.db.transaction().execute(async (trx) => {
             for (const { id, success, result } of respSubmit) {
