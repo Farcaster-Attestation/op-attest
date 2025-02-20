@@ -15,4 +15,6 @@ export enum MessageStatus {
     Attested = 4,
     FailedSubmit = 5,
     FailedAttest = 6,
+    InvalidMessageTransform = 7,
+    InvalidMessageCheck = 8,
 }

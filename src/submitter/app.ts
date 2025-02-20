@@ -94,20 +94,56 @@ export class AppSubmitter {
         });
     }
 
+    private async markInvalidMessages(allIds: string[], validIds: string[], status: MessageStatus) {
+        const invalidIds = allIds.filter(id => !validIds.includes(id));
+        if (invalidIds.length === 0) return;
+
+        await this.db.transaction().execute(async (trx) => {
+            await trx
+                .updateTable("messages")
+                .where("id", "in", invalidIds)
+                .set({ status })
+                .execute();
+        });
+    }
+
     async handleOptimisticVerify(data: DataQuery[]) {
-        console.log('handle', data.length)
+        log.info(`Processing ${data.length} messages`);
 
         const inputData = transformData(data);
-        console.log('inputData', inputData)
-        if (!inputData || inputData.length === 0) return;
+        log.info(`Transformed ${inputData.length} valid messages`);
+
+        const allIds = data.map(d => d.id);
+
+        // Mark dropped messages as invalid after transform
+        if (inputData.length < data.length) {
+            const validIds = inputData.map(d => d.id);
+            await this.markInvalidMessages(allIds, validIds, MessageStatus.InvalidMessageTransform);
+        }
+
+        if (inputData.length === 0) return;
 
         const respCheck = await this.checkOptimisticVerify(inputData);
-        console.log('respCheck', respCheck)
-        if (!respCheck || respCheck.length === 0) return;
+        log.info(`Checked ${respCheck.length} messages`);
+
+        // Mark dropped messages as invalid after check
+        if (respCheck.length < inputData.length) {
+            const checkedIds = respCheck.map(r => r.id).filter((id): id is string => id !== undefined);
+            await this.markInvalidMessages(allIds, checkedIds, MessageStatus.InvalidMessageCheck);
+        }
+
+        if (respCheck.length === 0) return;
 
         const validProofs = respCheck.filter((r) => r.success && !r.isVerified);
-        console.log('validProofs', validProofs.length)
-        if (validProofs.length === 0) return;   
+        log.info(`Found ${validProofs.length} valid proofs`);
+
+        // Mark invalid/already verified messages
+        if (validProofs.length < respCheck.length) {
+            const validIds = validProofs.map(p => p.id).filter((id): id is string => id !== undefined);
+            await this.markInvalidMessages(allIds, validIds, MessageStatus.InvalidMessageCheck);
+        }
+
+        if (validProofs.length === 0) return;
 
         const respSubmit = await this.submitOptimisticVerify(validProofs as InputData[]);
         if (!respSubmit || respSubmit.length === 0) return;
@@ -115,17 +151,16 @@ export class AppSubmitter {
         await this.db.transaction().execute(async (trx) => {
             for (const { id, success, result } of respSubmit) {
                 const status = success
-                    ? MessageStatus.Submitted
+                    ? MessageStatus.Submitted 
                     : MessageStatus.FailedSubmit;
 
                 await trx
                     .updateTable("messages")
                     .where("id", "=", id!)
-                    .set({ status, submitTxHash: result,  })
+                    .set({ status, submitTxHash: result })
                     .execute();
             }
         });
-
     }
 
     async submitOptimisticVerify(inputs: InputData[]) {
