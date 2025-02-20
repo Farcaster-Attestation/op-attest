@@ -95,6 +95,8 @@ export class AppSubmitter {
     }
 
     async handleOptimisticVerify(data: DataQuery[]) {
+        console.log('handle', data.length)
+
         const inputData = transformData(data);
         if (!inputData || inputData.length === 0) return;
 
@@ -102,6 +104,7 @@ export class AppSubmitter {
         if (!respCheck || respCheck.length === 0) return;
 
         const validProofs = respCheck.filter((r) => r.success && !r.isVerified);
+        console.log('validProofs', validProofs.length)
         if (validProofs.length === 0) return;   
 
         const respSubmit = await this.submitOptimisticVerify(validProofs as InputData[]);
