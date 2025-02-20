@@ -215,10 +215,13 @@ export class Client {
             });
 
             const txHash = await this.walletClient.writeContract(request);
+            await this.waitForTransaction(txHash);
+
             log.info(`Submitted proof to contract: ${txHash}`);
 
             return txHash;
         } catch (err) {
+            this.currentNonce = 0;
             log.error(`submitVerification error: ${err}`);
             return "0x";
         }
@@ -282,7 +285,17 @@ export class Client {
         });
     }
 
+    async waitForTransaction(txHash: `0x${string}`) {
+        return await this.publicClient.waitForTransactionReceipt({
+            hash: txHash,
+            timeout: 10000,
+        });
+    }
+
     async multicallSubmitProof(data: `0x${string}`[]) {
+        if (this.currentNonce == 0) {
+            this.currentNonce = await this.getNonce(this.account.address);
+        }
         try {
             const { request } = await this.publicClient.simulateContract({
                 address: FARCASTER_OPTIMISTIC_VERIFY_ADDRESS,
@@ -291,13 +304,16 @@ export class Client {
                 args: [data],
                 account: this.account,
                 gas: this.gasLimit,
+                nonce: this.currentNonce++,
             });
 
             const txHash = await this.walletClient.writeContract(request);
+            await this.waitForTransaction(txHash);
 
             log.info(`Submitted batch proof to contract: ${txHash}`);
             return txHash;
         } catch (err) {
+            this.currentNonce = 0;
             log.error(`multicallSubmitProof error: ${err}`);
             return "0x";
         }

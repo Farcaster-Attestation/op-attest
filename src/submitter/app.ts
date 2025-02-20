@@ -134,6 +134,9 @@ export class AppSubmitter {
 
         const results = await this.client.multicallSubmitProof(calls)
 
+        // We don't need to mark tx as failed for retry
+        if (results === "0x") return [];
+
         return inputs.map((result, index) => ({
             ...inputs[index],
             success: results !== "0x",
