@@ -26,6 +26,8 @@ export const MAX_FID = process.env["MAX_FID"];
 export const SUBMITTER_SUBMIT_INTERVAL = parseInt(process.env["SUBMITTER_SUBMIT_INTERVAL"] || "3000"); // 3s
 export const SUBMITTER_BATCH_SIZE = parseInt(process.env["SUBMITTER_BATCH_SIZE"] || "50");
 export const SUBMITTER_INDEX_INTERVAL = parseInt(process.env["SUBMITTER_INDEX_INTERVAL"] || "4000"); // 4s
+export const SUBMITTER_MAX_L1_FEES = parseInt(process.env["SUBMITTER_MAX_L1_FEES"] || "1000000000000"); // 1000Gwei
+export const SUBMITTER_MAX_L2_GAS_PRICE = parseInt(process.env["SUBMITTER_MAX_L2_GAS_PRICE"] || "1010000"); // 0,00101 Gwei
 
 // attested
 export const ATTEST_INTERVAL = parseInt(process.env["ATTEST_INTERVAL"] || "10000"); // 10s

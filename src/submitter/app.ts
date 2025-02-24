@@ -1,7 +1,14 @@
 import { AppDb } from "../indexer/models";
 import { getDbClient } from "@farcaster/shuttle";
 import { log } from "../log";
-import { FARCASTER_OPTIMISTIC_VERIFY_ADDRESS, METHOD_VERIFY, SUBMITTER_BATCH_SIZE, SUBMITTER_SUBMIT_INTERVAL } from "../env";
+import {
+    FARCASTER_OPTIMISTIC_VERIFY_ADDRESS,
+    METHOD_VERIFY,
+    SUBMITTER_BATCH_SIZE,
+    SUBMITTER_MAX_L1_FEES,
+    SUBMITTER_MAX_L2_GAS_PRICE,
+    SUBMITTER_SUBMIT_INTERVAL,
+} from "../env";
 import { MessageStatus } from "../constant";
 import { MessageType } from "@farcaster/core";
 import { encodeFunctionData } from "viem";
@@ -35,6 +42,12 @@ export class AppSubmitter {
                 if (this.isHandling) return;
                 this.isHandling = true;
 
+                const gasCheck = await this.checkGas();
+                if (!gasCheck) {
+                    this.isHandling = false;
+                    return;
+                }
+
                 const dataQueries = await this.fetchBatch();
                 log.info(`dataQueries: ${dataQueries.length}`)
                 if (!dataQueries || dataQueries.length === 0) {
@@ -60,7 +73,6 @@ export class AppSubmitter {
                     default:
                         log.error(`unknown method: ${METHOD_VERIFY}`);
                 }
-
 
                 this.isHandling = false;
             } catch (error) {
@@ -212,5 +224,17 @@ export class AppSubmitter {
                 ? result.result
                 : false,
         }));
+    }
+
+    async checkGas() {
+        const {l1BaseFee, l2GasPrice} = await this.client.getL1L2GasFees();
+        log.debug(`L1 Base Fee: ${l1BaseFee} - L2 Gas Price: ${l2GasPrice}`);
+
+        if (l1BaseFee > SUBMITTER_MAX_L1_FEES || l2GasPrice > SUBMITTER_MAX_L2_GAS_PRICE) {
+            log.warn(`Gas fees are too high: ${l1BaseFee} - ${l2GasPrice}`);
+            return false;
+        }
+
+        return true;
     }
 }

@@ -339,4 +339,39 @@ export class Client {
             return "0x";
         }
     }
+
+    async getL1L2GasFees() {
+        const L1_GAS_PRICE_ORACLE = "0x420000000000000000000000000000000000000F"; // Optimism Gas Oracle
+
+        // Get L1 Base Fee
+        const l1BaseFee = await this.publicClient.readContract({
+            address: L1_GAS_PRICE_ORACLE,
+            abi: [{
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_unsignedTxSize",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "getL1FeeUpperBound",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }],
+            functionName: "getL1FeeUpperBound",
+            args: [BigInt(1)], // measure 1 byte
+        });
+
+        // Get L2 Gas Price
+        const l2GasPrice = await this.publicClient.getGasPrice();
+
+        return { l1BaseFee, l2GasPrice };
+    }
 }

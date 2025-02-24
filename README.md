@@ -51,6 +51,8 @@ METHOD_VERIFY=<method_verify>
 SUBMITTER_SUBMIT_INTERVAL=<submit_interval_to_submit>
 SUBMITTER_BATCH_SIZE=<submit_batch_size>
 SUBMITTER_INDEX_INTERVAL=<submit_index_interval>
+SUBMITTER_MAX_L1_FEES=<submit_max_l1_fees>
+SUBMITTER_MAX_L2_GAS_PRICE=<submit_max_l2_gas_price>
 
 ```
 ## 3.2. Start the submitter
